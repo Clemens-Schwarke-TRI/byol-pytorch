@@ -301,7 +301,9 @@ class BYOL(nn.Module):
         ), "you must have greater than 1 sample when training, due to the batchnorm in the projection layer"
 
         if return_embedding:
-            return self.online_encoder(image_a, return_projection=return_projection)
+            return self.online_encoder(
+                image_a, return_projection=return_projection
+            ), self.online_encoder(image_b, return_projection=return_projection)
 
         image_a, image_b = self.augment1(image_a), self.augment2(image_b)
 

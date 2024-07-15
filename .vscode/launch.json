@@ -14,7 +14,8 @@
                 "--image_folder",
                 "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_v1"
             ]
-        },{
+        },
+        {
             "name": "Train",
             "type": "debugpy",
             "request": "launch",
@@ -35,6 +36,6 @@
                 "--image_folder",
                 "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_v1"
             ]
-        }   
+        },
     ]
 }

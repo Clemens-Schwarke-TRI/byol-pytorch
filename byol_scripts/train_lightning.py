@@ -12,11 +12,9 @@ from byol_pytorch import BYOL, TwoImagesStackedDataset
 import pytorch_lightning as pl
 
 # test model, a resnet 50
-
 resnet = models.resnet50(models.ResNet50_Weights.DEFAULT)
 
 # arguments
-
 parser = argparse.ArgumentParser(description="byol-lightning-test")
 
 parser.add_argument(
@@ -29,7 +27,6 @@ parser.add_argument(
 args = parser.parse_args()
 
 # constants
-
 BATCH_SIZE = 256
 EPOCHS = 1000
 LR = 3e-4
@@ -37,9 +34,8 @@ IMAGE_SIZE = 256
 IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
 NUM_WORKERS = multiprocessing.cpu_count()
 
+
 # pytorch lightning module
-
-
 class SelfSupervisedLearner(pl.LightningModule):
     def __init__(self, net, **kwargs):
         super().__init__()
@@ -64,7 +60,6 @@ class SelfSupervisedLearner(pl.LightningModule):
 
 
 # main
-
 if __name__ == "__main__":
     ds = TwoImagesStackedDataset(args.image_folder, IMAGE_SIZE)
     train_loader = DataLoader(
