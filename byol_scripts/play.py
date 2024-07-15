@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import time
 import argparse
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
@@ -90,6 +91,7 @@ if __name__ == "__main__":
                 "camera_3": [],
                 "camera_4": [],
             }
+            start = time.time()
             for idx, (image_a, image_b, camera_a, camera_b) in enumerate(dataloader):
                 image_a_out, image_b_out = model.learner(
                     image_a, image_b, return_embedding=True
@@ -100,6 +102,7 @@ if __name__ == "__main__":
                     projections[camera_a[i]].append(projection_a[i])
                     projections[camera_b[i]].append(projection_b[i])
                 print(f"Step {idx+1} of {len(dataloader)}")
+            print(f"Projections took {time.time() - start:.2f} seconds")
 
             # convert to numpy
             projections_camera_1 = torch.stack(projections["camera_1"]).cpu().numpy()
@@ -108,16 +111,16 @@ if __name__ == "__main__":
             projections_camera_4 = torch.stack(projections["camera_4"]).cpu().numpy()
 
             # save projections
-            np.save("projections_camera_1.npy", projections_camera_1)
-            np.save("projections_camera_2.npy", projections_camera_2)
-            np.save("projections_camera_3.npy", projections_camera_3)
-            np.save("projections_camera_4.npy", projections_camera_4)
+            np.save("projections/projections_camera_1.npy", projections_camera_1)
+            np.save("projections/projections_camera_2.npy", projections_camera_2)
+            np.save("projections/projections_camera_3.npy", projections_camera_3)
+            np.save("projections/projections_camera_4.npy", projections_camera_4)
     else:
         # load saved projections
-        projections_camera_1 = np.load("projections_camera_1.npy")
-        projections_camera_2 = np.load("projections_camera_2.npy")
-        projections_camera_3 = np.load("projections_camera_3.npy")
-        projections_camera_4 = np.load("projections_camera_4.npy")
+        projections_camera_1 = np.load("projections/projections_camera_1.npy")
+        projections_camera_2 = np.load("projections/projections_camera_2.npy")
+        projections_camera_3 = np.load("projections/projections_camera_3.npy")
+        projections_camera_4 = np.load("projections/projections_camera_4.npy")
 
     projections_all = np.vstack(
         [
@@ -138,7 +141,9 @@ if __name__ == "__main__":
 
     tsne = TSNE(n_components=2, random_state=42)
     print("Fitting t-SNE ...")
+    start = time.time()
     projections_tsne = tsne.fit_transform(projections_all)
+    print(f"t-SNE took {time.time() - start:.2f} seconds")
 
     plt.figure(figsize=(10, 8))
     plt.scatter(
