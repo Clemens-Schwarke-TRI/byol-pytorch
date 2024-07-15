@@ -15,7 +15,7 @@ args = parser.parse_args()
 
 
 # constants
-BATCH_SIZE = 32
+BATCH_SIZE = 128
 NUM_TRAIN_STEPS = 10000
 LR = 3e-4
 IMAGE_SIZE = 256
