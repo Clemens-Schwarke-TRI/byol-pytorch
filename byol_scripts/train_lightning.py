@@ -1,4 +1,5 @@
 import os
+import time
 import argparse
 import multiprocessing
 from pathlib import Path
@@ -27,12 +28,11 @@ parser.add_argument(
 args = parser.parse_args()
 
 # constants
-BATCH_SIZE = 256
-EPOCHS = 1000
+BATCH_SIZE = 64
+EPOCHS = 1
 LR = 3e-4
 IMAGE_SIZE = 256
 IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
-NUM_WORKERS = multiprocessing.cpu_count()
 
 
 # pytorch lightning module
@@ -63,7 +63,7 @@ class SelfSupervisedLearner(pl.LightningModule):
 if __name__ == "__main__":
     ds = TwoImagesStackedDataset(args.image_folder, IMAGE_SIZE)
     train_loader = DataLoader(
-        ds, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True
+        ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=multiprocessing.cpu_count()
     )
 
     model = SelfSupervisedLearner(
@@ -76,7 +76,8 @@ if __name__ == "__main__":
     )
 
     trainer = pl.Trainer(
-        max_epochs=EPOCHS, accumulate_grad_batches=1, sync_batchnorm=True
+        max_epochs=EPOCHS,
+        sync_batchnorm=True,
     )
 
     trainer.fit(model, train_loader)

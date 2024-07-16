@@ -128,6 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-checkpoints/
 lightning_logs/
+accelerate_logs/
 projections/

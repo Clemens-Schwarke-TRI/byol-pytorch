@@ -1,4 +1,6 @@
 from pathlib import Path
+from datetime import datetime
+import multiprocessing
 
 import torch
 import torch.distributed as dist
@@ -17,12 +19,10 @@ from accelerate import Accelerator
 from accelerate.utils import DistributedDataParallelKwargs
 
 # constants
-
 DEFAULT_DDP_KWARGS = DistributedDataParallelKwargs(find_unused_parameters=True)
 
+
 # functions
-
-
 def exists(v):
     return v is not None
 
@@ -33,24 +33,7 @@ def cycle(dl):
             yield batch
 
 
-# class
-
-
-class MockDataset(Dataset):
-    def __init__(self, image_size, length):
-        self.length = length
-        self.image_size = image_size
-
-    def __len__(self):
-        return self.length
-
-    def __getitem__(self, idx):
-        return torch.randn(3, self.image_size, self.image_size)
-
-
 # main trainer
-
-
 class BYOLTrainer(Module):
     @beartype
     def __init__(
@@ -65,7 +48,7 @@ class BYOLTrainer(Module):
         batch_size: int = 16,
         optimizer_klass=Adam,
         checkpoint_every: int = 1000,
-        checkpoint_folder: str = "./checkpoints",
+        checkpoint_folder: str = "./accelerate_logs",
         byol_kwargs: dict = dict(),
         optimizer_kwargs: dict = dict(),
         accelerator_kwargs: dict = dict(),
@@ -75,7 +58,11 @@ class BYOLTrainer(Module):
         if "kwargs_handlers" not in accelerator_kwargs:
             accelerator_kwargs["kwargs_handlers"] = [DEFAULT_DDP_KWARGS]
 
-        self.accelerator = Accelerator(**accelerator_kwargs)
+        self.accelerator = Accelerator(
+            log_with="tensorboard",
+            project_dir="./accelerate_logs",
+            **accelerator_kwargs,
+        )
 
         if dist.is_initialized() and dist.get_world_size() > 1:
             net = SyncBatchNorm.convert_sync_batchnorm(net)
@@ -90,7 +77,12 @@ class BYOLTrainer(Module):
             self.byol.parameters(), lr=learning_rate, **optimizer_kwargs
         )
 
-        self.dataloader = DataLoader(dataset, shuffle=True, batch_size=batch_size)
+        self.dataloader = DataLoader(
+            dataset,
+            shuffle=True,
+            batch_size=batch_size,
+            num_workers=multiprocessing.cpu_count(),
+        )
 
         self.num_train_steps = num_train_steps
 
@@ -103,6 +95,10 @@ class BYOLTrainer(Module):
 
         (self.byol, self.optimizer, self.dataloader) = self.accelerator.prepare(
             self.byol, self.optimizer, self.dataloader
+        )
+
+        self.accelerator.init_trackers(
+            f"byol_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
         )
 
         self.register_buffer("step", torch.tensor(0))
@@ -118,22 +114,26 @@ class BYOLTrainer(Module):
         data_it = cycle(self.dataloader)
 
         for _ in range(self.num_train_steps):
-            image_a, image_b = next(data_it)
+            images = next(data_it)
 
             with self.accelerator.autocast():
-                loss = self.byol(image_a, image_b)
+                loss = self.byol(images[0], images[1])
                 self.accelerator.backward(loss)
 
             self.print(f"loss {loss.item():.3f}")
 
-            self.optimizer.zero_grad()
             self.optimizer.step()
+            self.optimizer.zero_grad()
 
             self.wait()
 
             self.byol.update_moving_average()
 
             self.wait()
+
+            # log to tensorboard
+            if self.accelerator.is_main_process and step % 50 == 0:
+                self.accelerator.log({"loss": loss.item()}, step=step)
 
             if not (step % self.checkpoint_every) and self.accelerator.is_main_process:
                 checkpoint_num = step // self.checkpoint_every
