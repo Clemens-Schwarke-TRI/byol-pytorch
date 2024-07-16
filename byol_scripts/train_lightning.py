@@ -29,7 +29,7 @@ args = parser.parse_args()
 
 # constants
 BATCH_SIZE = 64
-EPOCHS = 1
+EPOCHS = 100
 LR = 3e-4
 IMAGE_SIZE = 256
 IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
@@ -42,8 +42,8 @@ class SelfSupervisedLearner(pl.LightningModule):
         self.learner = BYOL(net, **kwargs)
 
     def forward(self, images):
-        image_a = images[0]
-        image_b = images[1]
+        image_a = images[:, 0]
+        image_b = images[:, 1]
         return self.learner(image_a, image_b)
 
     def training_step(self, images, _):
