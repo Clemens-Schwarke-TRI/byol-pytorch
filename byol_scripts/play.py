@@ -4,6 +4,7 @@ import time
 import argparse
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
+import multiprocessing
 
 from sklearn.manifold import TSNE
 from torch import nn
@@ -29,7 +30,7 @@ args = parser.parse_args()
 
 # constants
 IMAGE_SIZE = 256
-BATCH_SIZE = 256
+BATCH_SIZE = 64
 LR = 3e-4
 
 
@@ -40,8 +41,8 @@ class SelfSupervisedLearner(pl.LightningModule):
         self.learner = BYOL(net, **kwargs)
 
     def forward(self, images):
-        image_a = images[0]
-        image_b = images[1]
+        image_a = images[:, 0]
+        image_b = images[:, 1]
         return self.learner(image_a, image_b)
 
     def training_step(self, images, _):
@@ -64,13 +65,16 @@ if __name__ == "__main__":
         # create dataset
         dataset = TwoImagesLabelledDataset(args.image_folder, IMAGE_SIZE)
         dataloader = torch.utils.data.DataLoader(
-            dataset, shuffle=False, batch_size=BATCH_SIZE
+            dataset,
+            shuffle=False,
+            batch_size=BATCH_SIZE,
+            num_workers=multiprocessing.cpu_count(),
         )
 
         # create model
         net = models.resnet50()
         model = SelfSupervisedLearner.load_from_checkpoint(
-            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_5/checkpoints/epoch=999-step=151000.ckpt",
+            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_47/checkpoints/epoch=99-step=60300.ckpt",
             net=net,
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",
@@ -81,7 +85,7 @@ if __name__ == "__main__":
                 std=torch.tensor([0.229, 0.224, 0.225]),
             ),
         )
-        model.eval()
+        # model.eval()
 
         with torch.no_grad():
             # play model
@@ -93,6 +97,7 @@ if __name__ == "__main__":
             }
             start = time.time()
             for idx, (image_a, image_b, camera_a, camera_b) in enumerate(dataloader):
+                image_a, image_b = image_a.to(model.device), image_b.to(model.device)
                 image_a_out, image_b_out = model.learner(
                     image_a, image_b, return_embedding=True
                 )

@@ -84,7 +84,7 @@ class TwoImagesLabelledDataset(TwoImagesDataset):
         path_a = self.paths[camera_a][image_index]
         path_b = self.paths[camera_b][image_index]
 
-        image_a = self.transform(Image.open(path_a).convert("RGB")).to(device="cuda")
-        image_b = self.transform(Image.open(path_b).convert("RGB")).to(device="cuda")
+        image_a = self.transform(Image.open(path_a).convert("RGB"))
+        image_b = self.transform(Image.open(path_b).convert("RGB"))
 
         return image_a, image_b, camera_a, camera_b
