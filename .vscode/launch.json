@@ -4,7 +4,18 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-         {
+        {
+            "name": "Train Triplet",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/byol_scripts/train_lightning_triplet.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--image_folder",
+                "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_v1"
+            ]
+        },
+        {
             "name": "Train Lightning",
             "type": "debugpy",
             "request": "launch",
