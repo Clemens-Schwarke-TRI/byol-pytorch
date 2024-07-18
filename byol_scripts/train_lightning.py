@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from byol_pytorch import BYOL, TwoImagesStackedDataset
 import pytorch_lightning as pl
+from pytorch_lightning.strategies import DDPStrategy
 
 # test model, a resnet 50
 resnet = models.resnet50(models.ResNet50_Weights.DEFAULT)

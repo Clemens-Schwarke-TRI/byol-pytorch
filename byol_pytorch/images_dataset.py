@@ -35,7 +35,8 @@ class TwoImagesDataset(Dataset):
         )
 
         for camera in self.paths.keys():
-            for path in Path(folder, camera).glob("*"):
+            sorted_paths = sorted(Path(folder, camera).glob("*"))
+            for path in sorted_paths:
                 _, ext = os.path.splitext(path)
                 if ext.lower() in IMAGE_EXTS:
                     self.paths[camera].append(path)

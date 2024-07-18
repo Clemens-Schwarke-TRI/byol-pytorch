@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import multiprocessing
 
-from sklearn.manifold import TSNE
+from MulticoreTSNE import MulticoreTSNE as TSNE
 from scipy.spatial.distance import cdist
 from torch import nn
 from torchvision import transforms as T
@@ -87,12 +87,16 @@ if __name__ == "__main__":
 
         # create model
         net = models.resnet50()
+        pretrained_resnet50 = models.resnet50(models.ResNet50_Weights.DEFAULT)
         model = SelfSupervisedLearner.load_from_checkpoint(
-            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_47/checkpoints/epoch=99-step=60300.ckpt",
+            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_47_100ep/checkpoints/epoch=99-step=60300.ckpt",
             net=net,
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",
         )
+        # model.learner.online_encoder.net.load_state_dict(
+        #     pretrained_resnet50.state_dict()
+        # )
         model.learner.augment1 = model.learner.augment2 = nn.Sequential(
             T.Normalize(
                 mean=torch.tensor([0.485, 0.456, 0.406]),
@@ -117,6 +121,10 @@ if __name__ == "__main__":
                 )
                 projection_a = image_a_out[0]
                 projection_b = image_b_out[0]
+
+                # projection_a = model.learner.online_predictor(projection_a)
+                # projection_b = model.learner.online_predictor(projection_b)
+
                 for i in range(len(camera_a)):
                     projections[camera_a[i]].append(projection_a[i])
                     projections[camera_b[i]].append(projection_b[i])
@@ -137,18 +145,10 @@ if __name__ == "__main__":
 
     if args.use_saved_projections or args.use_saved_tsne:
         # load saved projections
-        projections_camera_1 = np.load(
-            "lightning_logs/version_47/projections_camera_1.npy"
-        )
-        projections_camera_2 = np.load(
-            "lightning_logs/version_47/projections_camera_2.npy"
-        )
-        projections_camera_3 = np.load(
-            "lightning_logs/version_47/projections_camera_3.npy"
-        )
-        projections_camera_4 = np.load(
-            "lightning_logs/version_47/projections_camera_4.npy"
-        )
+        projections_camera_1 = np.load("projections/projections_camera_1.npy")
+        projections_camera_2 = np.load("projections/projections_camera_2.npy")
+        projections_camera_3 = np.load("projections/projections_camera_3.npy")
+        projections_camera_4 = np.load("projections/projections_camera_4.npy")
 
     projections_all = np.vstack(
         [
@@ -168,10 +168,13 @@ if __name__ == "__main__":
     )
 
     if not args.use_saved_tsne:
-        tsne = TSNE(n_components=2, random_state=42)
+        projections_norm = projections_all / np.linalg.norm(
+            projections_all, axis=1, keepdims=True
+        )
+        tsne = TSNE(n_components=2, random_state=42, n_jobs=multiprocessing.cpu_count())
         print("Fitting t-SNE ...")
         start = time.time()
-        projections_tsne = tsne.fit_transform(projections_all)
+        projections_tsne = tsne.fit_transform(projections_norm)
         print(f"t-SNE took {time.time() - start:.2f} seconds")
 
         np.save("projections/projections_tsne.npy", projections_tsne)
