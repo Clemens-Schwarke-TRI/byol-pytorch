@@ -26,7 +26,7 @@ parser.add_argument(
 parser.add_argument(
     "--plot",
     type=str,
-    choices=["cameras", "points", "distance"],
+    choices=["cameras", "points", "distance", "live_plot", "live_plot_2"],
     default="cameras",
     help="plot cameras or points",
 )
@@ -89,7 +89,7 @@ if __name__ == "__main__":
         net = models.resnet50()
         pretrained_resnet50 = models.resnet50(models.ResNet50_Weights.DEFAULT)
         model = SelfSupervisedLearner.load_from_checkpoint(
-            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_47_100ep/checkpoints/epoch=99-step=60300.ckpt",
+            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_64_only_cam_2_and_4/checkpoints/epoch=85-step=8686.ckpt",
             net=net,
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",
@@ -212,6 +212,7 @@ if __name__ == "__main__":
         plt.xlabel("t-SNE Component 1")
         plt.ylabel("t-SNE Component 2")
         plt.show()
+
     elif args.plot == "points":
         plt.figure(figsize=(10, 8))
         num_points = 100
@@ -231,6 +232,7 @@ if __name__ == "__main__":
         plt.xlabel("t-SNE Component 1")
         plt.ylabel("t-SNE Component 2")
         plt.show()
+
     elif args.plot == "distance":
         # compute pairwise distances
         num_points = len(projections_camera_1)
@@ -270,3 +272,128 @@ if __name__ == "__main__":
         plt.suptitle("Pairwise Cosine Similarity of 256-Dimensional Projections")
         plt.tight_layout()
         plt.show()
+
+    elif args.plot == "live_plot":
+        disp_camera = 2
+        dataset = TwoImagesLabelledDataset(args.image_folder, IMAGE_SIZE)
+        dataloader = torch.utils.data.DataLoader(
+            dataset,
+            shuffle=False,
+            batch_size=1,
+            num_workers=multiprocessing.cpu_count(),
+        )
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+        idx = 0
+        for image_a, image_b, camera_a, camera_b in dataloader:
+            if disp_camera == 1:
+                image = image_a
+                camera = camera_a
+                if idx == 0:
+                    projections = projections_tsne[0 : len(projections_camera_1)]
+                if idx > len(projections_camera_1):
+                    break
+            elif disp_camera == 2:
+                image = image_b
+                camera = camera_b
+                if idx == 0:
+                    projections = projections_tsne[
+                        len(projections_camera_1) : 2 * len(projections_camera_1)
+                    ]
+                if idx > len(projections_camera_1):
+                    break
+            elif disp_camera == 3:
+                image = image_a
+                camera = camera_a
+                if idx == 0:
+                    projections = projections_tsne[
+                        2 * len(projections_camera_1) : 3 * len(projections_camera_1)
+                    ]
+                if idx < len(projections_camera_1):
+                    idx += 1
+                    continue
+            elif disp_camera == 4:
+                image = image_b
+                camera = camera_b
+                if idx == 0:
+                    projections = projections_tsne[
+                        3 * len(projections_camera_1) : 4 * len(projections_camera_1)
+                    ]
+                if idx < len(projections_camera_1):
+                    idx += 1
+                    continue
+
+            ax1.clear()
+            ax1.imshow(image[0].permute(1, 2, 0).cpu().numpy())
+            ax1.axis("off")
+            ax1.set_title(f"Camera {camera[0]}")
+
+            ax2.clear()
+            if disp_camera == 1 or disp_camera == 2:
+                ax2.scatter(
+                    projections[0:idx, 0],
+                    projections[0:idx, 1],
+                    alpha=0.5,
+                )
+            elif disp_camera == 3 or disp_camera == 4:
+                ax2.scatter(
+                    projections[0 : idx - len(projections_camera_1), 0],
+                    projections[0 : idx - len(projections_camera_1), 1],
+                    alpha=0.5,
+                )
+            ax2.set_xlim(-75, 75)
+            ax2.set_ylim(-75, 75)
+
+            plt.draw()
+            plt.pause(0.01)
+
+            idx += 1
+            print(idx)
+
+    elif args.plot == "live_plot_2":
+        print(
+            "For this plot, set the dataset to desired combination and adapt offsets!"
+        )
+        offset_a = 0  # len(projections_camera_1)
+        offset_b = len(projections_camera_1)
+        dataset = TwoImagesLabelledDataset(args.image_folder, IMAGE_SIZE)
+        dataloader = torch.utils.data.DataLoader(
+            dataset,
+            shuffle=False,
+            batch_size=1,
+            num_workers=multiprocessing.cpu_count(),
+        )
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
+        idx = 0
+        for image_a, image_b, camera_a, camera_b in dataloader:
+            ax1.clear()
+            ax1.imshow(image_a[0].permute(1, 2, 0).cpu().numpy())
+            ax1.axis("off")
+            ax1.set_title(camera_a[0])
+
+            ax2.clear()
+            ax2.scatter(
+                projections_tsne[offset_a : offset_a + idx, 0],
+                projections_tsne[offset_a : offset_a + idx, 1],
+                alpha=0.5,
+                label=camera_a[0],
+            )
+            ax2.scatter(
+                projections_tsne[offset_b : offset_b + idx, 0],
+                projections_tsne[offset_b : offset_b + idx, 1],
+                alpha=0.5,
+                label=camera_b[0],
+            )
+            ax2.set_xlim(-75, 75)
+            ax2.set_ylim(-75, 75)
+            ax2.legend()
+
+            ax3.clear()
+            ax3.imshow(image_b[0].permute(1, 2, 0).cpu().numpy())
+            ax3.axis("off")
+            ax3.set_title(camera_b[0])
+
+            plt.draw()
+            plt.pause(0.01)
+
+            idx += 1
+            print(idx)
