@@ -26,7 +26,7 @@ args = parser.parse_args()
 # constants
 BATCH_SIZE = 48
 EPOCHS = 100
-LR = 3e-4
+LR = 1e-3
 IMAGE_SIZE = 256
 IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
 
@@ -56,13 +56,21 @@ if __name__ == "__main__":
         ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=multiprocessing.cpu_count()
     )
 
-    model = SelfSupervisedLearner(
-        resnet,
+    # model = SelfSupervisedLearner(
+    #     resnet,
+    #     image_size=IMAGE_SIZE,
+    #     hidden_layer="avgpool",
+    #     projection_size=256,
+    #     projection_hidden_size=4096,
+    # )
+    model = SelfSupervisedLearner.load_from_checkpoint(
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_75_triplet/checkpoints/epoch=99-step=160700.ckpt",
+        net=resnet,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
-        projection_size=256,
-        projection_hidden_size=4096,
     )
+    model.eval()
+    model.configure_optimizers()
 
     trainer = pl.Trainer(
         max_epochs=EPOCHS,

@@ -158,7 +158,7 @@ class NetWrapper(nn.Module):
 
         projector = self._get_projector(representation)
         projection = projector(representation)
-        return projection, representation
+        return projection
 
 
 # main class
@@ -245,7 +245,7 @@ class Triplet(nn.Module):
         )
 
         images = torch.cat((image_a, image_p, image_n), dim=0)
-        online_projections, _ = self.online_encoder(images)
+        online_projections = self.online_encoder(images)
         online_projections = F.normalize(online_projections, dim=-1, p=2)
         online_projections_a, online_projections_p, online_projections_n = (
             online_projections.chunk(3, dim=0)
