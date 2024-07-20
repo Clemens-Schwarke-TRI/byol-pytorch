@@ -17,7 +17,7 @@ from pytorch_lightning.strategies import DDPStrategy
 resnet = models.resnet50(models.ResNet50_Weights.DEFAULT)
 
 # arguments
-parser = argparse.ArgumentParser(description="byol-lightning-test")
+parser = argparse.ArgumentParser(description="byol_lightning")
 
 parser.add_argument(
     "--image_folder",

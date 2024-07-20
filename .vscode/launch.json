@@ -16,10 +16,10 @@
             ]
         },
         {
-            "name": "Train Lightning",
+            "name": "Train BYOL",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/byol_scripts/train_lightning.py",
+            "program": "${workspaceFolder}/byol_scripts/train_lightning_byol.py",
             "console": "integratedTerminal",
             "args": [
                 "--image_folder",
@@ -27,26 +27,15 @@
             ]
         },
         {
-            "name": "Train",
+            "name": "Play_Triplet",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/byol_scripts/train.py",
+            "program": "${workspaceFolder}/byol_scripts/play_triplet.py",
             "console": "integratedTerminal",
             "args": [
                 "--image_folder",
                 "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_v1"
             ]
-        },
-        {
-            "name": "Play",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/byol_scripts/play.py",
-            "console": "integratedTerminal",
-            "args": [
-                "--image_folder",
-                "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_v1"
-            ]
-        },
+        }
     ]
 }

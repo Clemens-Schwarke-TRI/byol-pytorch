@@ -16,7 +16,7 @@ from torchvision import models
 from byol_pytorch import BYOL, TwoImagesLabelledDataset
 
 # arguments
-parser = argparse.ArgumentParser(description="byol-lightning-test")
+parser = argparse.ArgumentParser(description="plot_byol")
 parser.add_argument(
     "--image_folder",
     type=str,
