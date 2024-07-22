@@ -63,14 +63,6 @@ if __name__ == "__main__":
         projection_size=256,
         projection_hidden_size=4096,
     )
-    # # # model = SelfSupervisedLearner.load_from_checkpoint(
-    # # #     "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_75_triplet/checkpoints/epoch=99-step=160700.ckpt",
-    # # #     net=resnet,
-    # # #     image_size=IMAGE_SIZE,
-    # # #     hidden_layer="avgpool",
-    # # # )
-    # # model.eval()
-    # model.configure_optimizers()
 
     trainer = pl.Trainer(
         max_epochs=EPOCHS,
