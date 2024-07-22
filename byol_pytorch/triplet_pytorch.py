@@ -184,7 +184,6 @@ class Triplet(nn.Module):
         DEFAULT_AUG = torch.nn.Sequential(
             # RandomApply(T.ColorJitter(0.8, 0.8, 0.8, 0.2), p=0.1),
             # T.RandomGrayscale(p=0.1),
-            # T.RandomHorizontalFlip(),
             # RandomApply(T.GaussianBlur((3, 3), (1.0, 2.0)), p=0.1),
             # T.RandomResizedCrop(size=(image_size, image_size), scale=(0.8, 1.0)),
             T.Normalize(

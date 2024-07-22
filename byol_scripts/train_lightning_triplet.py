@@ -65,6 +65,7 @@ if __name__ == "__main__":
     )
 
     trainer = pl.Trainer(
+        devices=1,
         max_epochs=EPOCHS,
     )
 
