@@ -286,18 +286,16 @@ class BYOL(nn.Module):
             self.training and image_a.shape[0] == 1
         ), "you must have greater than 1 sample when training, due to the batchnorm in the projection layer"
 
+        image_a, image_b = self.augment1(image_a), self.augment2(image_b)
+
         if return_embedding:
             return self.online_encoder(
                 image_a, return_projection=return_projection
             ), self.online_encoder(image_b, return_projection=return_projection)
 
-        image_a, image_b = self.augment1(image_a), self.augment2(image_b)
-
         images = torch.cat((image_a, image_b), dim=0)
-
         online_projections, _ = self.online_encoder(images)
         online_predictions = self.online_predictor(online_projections)
-
         online_pred_a, online_pred_b = online_predictions.chunk(2, dim=0)
 
         with torch.no_grad():

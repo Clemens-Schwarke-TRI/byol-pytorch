@@ -27,7 +27,7 @@
             ]
         },
         {
-            "name": "Play_Triplet",
+            "name": "Play Triplet",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/byol_scripts/play_triplet.py",

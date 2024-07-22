@@ -88,16 +88,13 @@ if __name__ == "__main__":
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",
         )
-        # model.learner.online_encoder.net.load_state_dict(
-        #     pretrained_resnet50.state_dict()
-        # )
         model.learner.augment1 = model.learner.augment2 = nn.Sequential(
             T.Normalize(
                 mean=torch.tensor([0.485, 0.456, 0.406]),
                 std=torch.tensor([0.229, 0.224, 0.225]),
             ),
         )
-        # model.eval()
+        model.eval()
 
         with torch.no_grad():
             # play model
@@ -109,7 +106,9 @@ if __name__ == "__main__":
             }
             start = time.time()
             for idx, (image_a, image_b, camera_a, camera_b) in enumerate(dataloader):
-                images = torch.stack([image_a, image_b, image_a], dim=1).to("cuda")
+                images = torch.stack([image_a, image_b, image_a], dim=1).to(
+                    model.device
+                )
                 projections_out = model.learner(images, return_embedding=True)
                 projection_a, projection_b, _ = projections_out.chunk(3, dim=0)
 
@@ -133,18 +132,10 @@ if __name__ == "__main__":
 
     if args.use_saved_projections or args.use_saved_tsne:
         # load saved projections
-        projections_camera_1 = np.load(
-            "lightning_logs/version_75/projections_camera_1.npy"
-        )
-        projections_camera_2 = np.load(
-            "lightning_logs/version_75/projections_camera_2.npy"
-        )
-        projections_camera_3 = np.load(
-            "lightning_logs/version_75/projections_camera_3.npy"
-        )
-        projections_camera_4 = np.load(
-            "lightning_logs/version_75/projections_camera_4.npy"
-        )
+        projections_camera_1 = np.load("projections/projections_camera_1.npy")
+        projections_camera_2 = np.load("projections/projections_camera_2.npy")
+        projections_camera_3 = np.load("projections/projections_camera_3.npy")
+        projections_camera_4 = np.load("projections/projections_camera_4.npy")
 
     projections_all = np.vstack(
         [
@@ -172,7 +163,7 @@ if __name__ == "__main__":
 
         np.save("projections/projections_tsne.npy", projections_tsne)
     else:
-        projections_tsne = np.load("lightning_logs/version_75/projections_tsne.npy")
+        projections_tsne = np.load("projections/projections_tsne.npy")
 
     if args.plot == "cameras":
         plt.figure(figsize=(10, 8))
@@ -346,8 +337,10 @@ if __name__ == "__main__":
         print(
             "For this plot, set the dataset to desired combination and adapt offsets!"
         )
-        offset_a = 0  # len(projections_camera_1)
-        offset_b = len(projections_camera_1)
+        offset_a = 0
+        offset_b = 1 * len(projections_camera_1)
+        offset_c = 2 * len(projections_camera_1)
+        offset_d = 3 * len(projections_camera_1)
         dataset = TwoImagesLabelledDataset(args.image_folder, IMAGE_SIZE)
         dataloader = torch.utils.data.DataLoader(
             dataset,
@@ -355,7 +348,7 @@ if __name__ == "__main__":
             batch_size=1,
             num_workers=multiprocessing.cpu_count(),
         )
-        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(30, 10))
         idx = 0
         for image_a, image_b, camera_a, camera_b in dataloader:
             ax1.clear()
@@ -367,15 +360,28 @@ if __name__ == "__main__":
             ax2.scatter(
                 projections_tsne[offset_a : offset_a + idx, 0],
                 projections_tsne[offset_a : offset_a + idx, 1],
-                alpha=0.5,
-                label=camera_a[0],
+                alpha=1,
+                label="camera 1",
             )
             ax2.scatter(
                 projections_tsne[offset_b : offset_b + idx, 0],
                 projections_tsne[offset_b : offset_b + idx, 1],
                 alpha=0.5,
-                label=camera_b[0],
+                label="camera 2",
             )
+            ax2.scatter(
+                projections_tsne[offset_c : offset_c + idx, 0],
+                projections_tsne[offset_c : offset_c + idx, 1],
+                alpha=0.2,
+                label="camera 3",
+            )
+            ax2.scatter(
+                projections_tsne[offset_d : offset_d + idx, 0],
+                projections_tsne[offset_d : offset_d + idx, 1],
+                alpha=0.2,
+                label="camera 4",
+            )
+
             ax2.set_xlim(-75, 75)
             ax2.set_ylim(-75, 75)
             ax2.legend()

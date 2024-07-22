@@ -87,23 +87,19 @@ if __name__ == "__main__":
 
         # create model
         net = models.resnet50()
-        pretrained_resnet50 = models.resnet50(models.ResNet50_Weights.DEFAULT)
         model = SelfSupervisedLearner.load_from_checkpoint(
             "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_64_only_cam_2_and_4/checkpoints/epoch=85-step=8686.ckpt",
             net=net,
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",
         )
-        # model.learner.online_encoder.net.load_state_dict(
-        #     pretrained_resnet50.state_dict()
-        # )
         model.learner.augment1 = model.learner.augment2 = nn.Sequential(
             T.Normalize(
                 mean=torch.tensor([0.485, 0.456, 0.406]),
                 std=torch.tensor([0.229, 0.224, 0.225]),
             ),
         )
-        # model.eval()
+        model.eval()
 
         with torch.no_grad():
             # play model
@@ -365,35 +361,36 @@ if __name__ == "__main__":
         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
         idx = 0
         for image_a, image_b, camera_a, camera_b in dataloader:
-            ax1.clear()
-            ax1.imshow(image_a[0].permute(1, 2, 0).cpu().numpy())
-            ax1.axis("off")
-            ax1.set_title(camera_a[0])
+            if idx % 10 == 0:
+                ax1.clear()
+                ax1.imshow(image_a[0].permute(1, 2, 0).cpu().numpy())
+                ax1.axis("off")
+                ax1.set_title(camera_a[0])
 
-            ax2.clear()
-            ax2.scatter(
-                projections_tsne[offset_a : offset_a + idx, 0],
-                projections_tsne[offset_a : offset_a + idx, 1],
-                alpha=0.5,
-                label=camera_a[0],
-            )
-            ax2.scatter(
-                projections_tsne[offset_b : offset_b + idx, 0],
-                projections_tsne[offset_b : offset_b + idx, 1],
-                alpha=0.5,
-                label=camera_b[0],
-            )
-            ax2.set_xlim(-75, 75)
-            ax2.set_ylim(-75, 75)
-            ax2.legend()
+                ax2.clear()
+                ax2.scatter(
+                    projections_tsne[offset_a : offset_a + idx, 0],
+                    projections_tsne[offset_a : offset_a + idx, 1],
+                    alpha=0.5,
+                    label=camera_a[0],
+                )
+                ax2.scatter(
+                    projections_tsne[offset_b : offset_b + idx, 0],
+                    projections_tsne[offset_b : offset_b + idx, 1],
+                    alpha=0.5,
+                    label=camera_b[0],
+                )
+                ax2.set_xlim(-75, 75)
+                ax2.set_ylim(-75, 75)
+                ax2.legend()
 
-            ax3.clear()
-            ax3.imshow(image_b[0].permute(1, 2, 0).cpu().numpy())
-            ax3.axis("off")
-            ax3.set_title(camera_b[0])
+                ax3.clear()
+                ax3.imshow(image_b[0].permute(1, 2, 0).cpu().numpy())
+                ax3.axis("off")
+                ax3.set_title(camera_b[0])
 
-            plt.draw()
-            plt.pause(0.01)
+                plt.draw()
+                plt.pause(0.01)
 
             idx += 1
             print(idx)

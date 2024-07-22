@@ -219,24 +219,10 @@ class Triplet(nn.Module):
             self.training and images.shape[0] == 1
         ), "you must have greater than 1 sample when training, due to the batchnorm in the projection layer"
 
+        # augment and reshape from [B, 3, C, H, W] to [B*3, C, H, W]
         image_a = images[:, 0]
         image_p = images[:, 1]
         image_n = images[:, 2]
-
-        if return_embedding:
-            online_projections = self.online_encoder(
-                torch.cat((image_a, image_p, image_n), dim=0),
-                return_projection=return_projection,
-            )
-            return F.normalize(online_projections, dim=-1, p=2)
-
-        # if image_a.shape[0] == 32:
-        #     for i in range(32):
-        #         fig, axs = plt.subplots(1, 3)
-        #         axs[0].imshow(image_a[i].permute(1, 2, 0).cpu().numpy())
-        #         axs[1].imshow(image_p[i].permute(1, 2, 0).cpu().numpy())
-        #         axs[2].imshow(image_n[i].permute(1, 2, 0).cpu().numpy())
-        #         plt.show()
 
         image_a, image_p, image_n = (
             self.augment1(image_a),
@@ -245,6 +231,14 @@ class Triplet(nn.Module):
         )
 
         images = torch.cat((image_a, image_p, image_n), dim=0)
+
+        if return_embedding:
+            online_projections = self.online_encoder(
+                images,
+                return_projection=return_projection,
+            )
+            return F.normalize(online_projections, dim=-1, p=2)
+
         online_projections = self.online_encoder(images)
         online_projections = F.normalize(online_projections, dim=-1, p=2)
         online_projections_a, online_projections_p, online_projections_n = (
