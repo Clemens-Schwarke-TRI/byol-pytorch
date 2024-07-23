@@ -13,7 +13,7 @@ from torch import nn
 from torchvision import transforms
 from torchvision import models
 
-from byol_pytorch import Triplet, Decoder, ImageDataset
+from byol_pytorch import Triplet, Decoder, ImageDataset, TwoImageDataset
 
 # arguments
 parser = argparse.ArgumentParser(description="plot_decoder")
@@ -53,10 +53,10 @@ class SelfSupervisedLearner(pl.LightningModule):
 
 # main
 if __name__ == "__main__":
-    dataset = ImageDataset(args.image_folder, IMAGE_SIZE, "camera_4")
+    dataset = TwoImageDataset(args.image_folder, IMAGE_SIZE, "camera_4", "camera_2")
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        shuffle=True,
+        shuffle=False,
         batch_size=BATCH_SIZE,
         num_workers=multiprocessing.cpu_count(),
     )
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # create model
     net = models.resnet50()
     model = SelfSupervisedLearner.load_from_checkpoint(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_91_decoder/checkpoints/epoch=9-step=5030.ckpt",
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_92/checkpoints/epoch=99-step=50300.ckpt",
         net=net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
@@ -81,16 +81,24 @@ if __name__ == "__main__":
     )
 
     with torch.no_grad():
-        for image in dataloader:
+        fig, ax = plt.subplots(1, 3, figsize=(30, 10))
+        for image, image2 in dataloader:
             output_image = model.learner(image.to(model.device))
             image = denormalize(image[0])
             output_image = denormalize(output_image[0])
+            image2 = denormalize(image2[0])
 
-            fig, ax = plt.subplots(1, 2, figsize=(20, 10))
+            ax[0].clear()
             ax[0].imshow(image.cpu().numpy().transpose(1, 2, 0))
             ax[0].set_title("Input Image")
             ax[0].axis("off")
+            ax[1].clear()
             ax[1].imshow(output_image.cpu().numpy().transpose(1, 2, 0))
             ax[1].set_title("Output Image")
             ax[1].axis("off")
-            plt.show()
+            ax[2].clear()
+            ax[2].imshow(image2.cpu().numpy().transpose(1, 2, 0))
+            ax[2].set_title("Ground Truth Image")
+            ax[2].axis("off")
+
+            plt.pause(0.1)

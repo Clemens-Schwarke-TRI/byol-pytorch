@@ -222,3 +222,22 @@ class ImageDataset(Dataset):
         index = index % len(self.paths)
         image = self.transform(Image.open(self.paths[index]).convert("RGB"))
         return image
+
+
+class TwoImageDataset(ImageDataset):
+    def __init__(self, folder, image_size, camera, camera2):
+        super().__init__(folder, image_size, camera)
+        self.camera2 = camera2
+        self.paths2 = []
+        sorted_paths2 = sorted(Path(folder, camera2).glob("*"))
+        for path in sorted_paths2:
+            _, ext = os.path.splitext(path)
+            if ext.lower() in IMAGE_EXTS:
+                self.paths2.append(path)
+        print(f"{len(self.paths2)} images found for {camera2}")
+
+    def __getitem__(self, index):
+        index = index % len(self.paths)
+        image = self.transform(Image.open(self.paths[index]).convert("RGB"))
+        image2 = self.transform(Image.open(self.paths2[index]).convert("RGB"))
+        return image, image2
