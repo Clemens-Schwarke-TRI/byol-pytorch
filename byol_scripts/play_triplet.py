@@ -83,10 +83,11 @@ if __name__ == "__main__":
         net = models.resnet50()
         pretrained_resnet50 = models.resnet50(models.ResNet50_Weights.DEFAULT)
         model = SelfSupervisedLearner.load_from_checkpoint(
-            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_75_triplet/checkpoints/epoch=99-step=160700.ckpt",
+            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_83_additional_positives_close_to_frame/checkpoints/epoch=99-step=160700.ckpt",
             net=net,
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",
+            map_location={"cuda:0": "cuda:0"},
         )
         model.learner.augment1 = model.learner.augment2 = nn.Sequential(
             T.Normalize(
@@ -334,9 +335,7 @@ if __name__ == "__main__":
             print(idx)
 
     elif args.plot == "live_plot_2":
-        print(
-            "For this plot, set the dataset to desired combination and adapt offsets!"
-        )
+        print("For this plot, set the dataset to desired camera combination!")
         offset_a = 0
         offset_b = 1 * len(projections_camera_1)
         offset_c = 2 * len(projections_camera_1)

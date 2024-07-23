@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from PIL import Image
+import random
 
 import torch
 from torchvision import transforms
@@ -157,3 +158,35 @@ class TripletDataset(Dataset):
         image_n = self.transform(Image.open(path_n).convert("RGB"))
 
         return torch.stack([image_a, image_p, image_n], dim=0)
+
+
+class ImageDataset(Dataset):
+    def __init__(self, folder, image_size, camera):
+        super().__init__()
+        self.folder = folder
+        self.camera = camera
+        self.transform = transforms.Compose(
+            [
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=torch.tensor([0.485, 0.456, 0.406]),
+                    std=torch.tensor([0.229, 0.224, 0.225]),
+                ),
+            ]
+        )
+        self.paths = []
+        sorted_paths = sorted(Path(folder, camera).glob("*"))
+        for path in sorted_paths:
+            _, ext = os.path.splitext(path)
+            if ext.lower() in IMAGE_EXTS:
+                self.paths.append(path)
+        print(f"{len(self.paths)} images found for {camera}")
+
+    def __len__(self):
+        return len(self.paths) * 10
+
+    def __getitem__(self, index):
+        index = index % len(self.paths)
+        image = self.transform(Image.open(self.paths[index]).convert("RGB"))
+        return image
