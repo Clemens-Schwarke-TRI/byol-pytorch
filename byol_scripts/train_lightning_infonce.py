@@ -5,7 +5,7 @@ import torch
 from torchvision import models
 from torch.utils.data import DataLoader
 
-from byol_pytorch import InfoNCE, TripletDataset
+from byol_pytorch import InfoNCE, TripletDataset, ImagePoseDataset
 import pytorch_lightning as pl
 
 # test model, a resnet 50
@@ -24,7 +24,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # constants
-BATCH_SIZE = 48
+BATCH_SIZE = 32
 EPOCHS = 100
 LR = 3e-4
 IMAGE_SIZE = 256
@@ -51,7 +51,7 @@ class SelfSupervisedLearner(pl.LightningModule):
 
 # main
 if __name__ == "__main__":
-    ds = TripletDataset(args.image_folder, IMAGE_SIZE)
+    ds = ImagePoseDataset(args.image_folder, IMAGE_SIZE)
     train_loader = DataLoader(
         ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=multiprocessing.cpu_count()
     )

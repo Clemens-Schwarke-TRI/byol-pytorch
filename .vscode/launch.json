@@ -12,7 +12,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--image_folder",
-                "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_v1"
+                "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_poses_v1"
             ]
         },
         {
