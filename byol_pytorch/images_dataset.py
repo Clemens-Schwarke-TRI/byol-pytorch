@@ -160,6 +160,38 @@ class TripletDataset(Dataset):
         return torch.stack([image_a, image_p, image_n], dim=0)
 
 
+class TripletDatasetAugmentedPositives(TripletDataset):
+    def __getitem__(self, index):
+        combination_index = index // self.min_length
+        image_index = index % self.min_length
+        # the negative example is from the same camera as the anchor and randomly
+        # sampled excluding a margin around the anchor image
+        margin = 10
+        random_range = self.min_length - 2 * margin
+        random_offset = torch.randint(1, random_range, (1,)).item()
+        random_index = (image_index + margin + random_offset) % self.min_length
+
+        camera_a, camera_p = self.combinations[combination_index]
+
+        path_a = self.paths[camera_a][image_index]
+        path_n = self.paths[camera_a][random_index]
+
+        # positive example is either same frame from another camera or a close frame
+        # from the same camera
+        if random.random() < 0.2:
+            disturbance = random.randint(-margin / 2, margin / 2)
+            distubed_index = (image_index + disturbance) % self.min_length
+            path_p = self.paths[camera_a][distubed_index]
+        else:
+            path_p = self.paths[camera_p][image_index]
+
+        image_a = self.transform(Image.open(path_a).convert("RGB"))
+        image_p = self.transform(Image.open(path_p).convert("RGB"))
+        image_n = self.transform(Image.open(path_n).convert("RGB"))
+
+        return torch.stack([image_a, image_p, image_n], dim=0)
+
+
 class ImageDataset(Dataset):
     def __init__(self, folder, image_size, camera):
         super().__init__()
