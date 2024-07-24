@@ -49,6 +49,17 @@
             ]
         },
         {
+            "name": "Play InfoNCE",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/byol_scripts/play_infonce.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--image_folder",
+                "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_v1"
+            ]
+        },
+        {
             "name": "Play Triplet",
             "type": "debugpy",
             "request": "launch",
@@ -69,6 +80,17 @@
                 "--image_folder",
                 "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_v1"
             ]
-        }
+        },
+        {
+            "name": "Play BYOL",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/byol_scripts/play_byol.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--image_folder",
+                "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_v1"
+            ]
+        },
     ]
 }

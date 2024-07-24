@@ -24,7 +24,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # constants
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 EPOCHS = 100
 LR = 3e-4
 IMAGE_SIZE = 256
@@ -65,8 +65,10 @@ if __name__ == "__main__":
     )
 
     trainer = pl.Trainer(
-        devices=1,
+        devices=[0, 1, 2, 3],
         max_epochs=EPOCHS,
+        strategy="ddp_find_unused_parameters_true",
+        sync_batchnorm=True,
     )
 
     trainer.fit(model, train_loader)

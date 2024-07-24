@@ -249,7 +249,7 @@ class ImagePoseDataset(Dataset):
         self,
         folder,
         image_size,
-        num_negatives=4,
+        num_negatives=1,
         ratio_positives=0.7,
         threshold_positives=0.2,
         threshold_negatives=0.3,

@@ -13,7 +13,7 @@ from torch import nn
 from torchvision import transforms
 from torchvision import models
 
-from byol_pytorch import Triplet, Decoder, ImageDataset, TwoImageDataset
+from byol_pytorch import InfoNCE, Decoder, ImageDataset, TwoImageDataset
 
 # arguments
 parser = argparse.ArgumentParser(description="plot_decoder")
@@ -35,8 +35,8 @@ LR = 3e-4
 class SelfSupervisedLearner(pl.LightningModule):
     def __init__(self, net, **kwargs):
         super().__init__()
-        triplet = Triplet(net, **kwargs)
-        encoder = triplet.online_encoder
+        model = InfoNCE(net, **kwargs)
+        encoder = model.online_encoder
         self.learner = Decoder(encoder)
 
     def forward(self, images):
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # create model
     net = models.resnet50()
     model = SelfSupervisedLearner.load_from_checkpoint(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_92/checkpoints/epoch=99-step=50300.ckpt",
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_106_version_104_decoder/checkpoints/epoch=11-step=6036.ckpt",
         net=net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     with torch.no_grad():
         fig, ax = plt.subplots(1, 3, figsize=(30, 10))
-        for image, image2 in dataloader:
+        for i, (image, image2) in enumerate(dataloader):
             output_image = model.learner(image.to(model.device))
             image = denormalize(image[0])
             output_image = denormalize(output_image[0])

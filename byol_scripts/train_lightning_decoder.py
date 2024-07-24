@@ -6,7 +6,7 @@ from torchvision import models
 from torch.utils.data import DataLoader
 
 from byol_pytorch import (
-    Triplet,
+    InfoNCE,
     Decoder,
     ImageDataset,
 )
@@ -39,8 +39,8 @@ IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
 class SelfSupervisedLearner(pl.LightningModule):
     def __init__(self, net, **kwargs):
         super().__init__()
-        triplet = Triplet(net, **kwargs)
-        encoder = triplet.online_encoder
+        model = InfoNCE(net, **kwargs)
+        encoder = model.online_encoder
         self.learner = Decoder(encoder)
 
     def forward(self, images):
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     # load encoder
     checkpoint = torch.load(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_75_triplet/checkpoints/epoch=99-step=160700.ckpt"
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_104_bs_384_neg_1_thresh_0.2-0.3_ratio_0.7/checkpoints/epoch=99-step=20100.ckpt"
     )
     encoder_weights = {
         k.replace("learner.online_encoder.", ""): v
