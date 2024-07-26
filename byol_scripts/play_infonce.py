@@ -82,10 +82,12 @@ if __name__ == "__main__":
         # create model
         net = models.resnet50()
         model = SelfSupervisedLearner.load_from_checkpoint(
-            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_104_bs_384_neg_1_thresh_0.2-0.3_ratio_0.7/checkpoints/epoch=99-step=20100.ckpt",
+            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_114_bs_256_latent_2/checkpoints/epoch=40-step=12382.ckpt",
             net=net,
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",
+            projection_size=2,
+            projection_hidden_size=256,
             # map_location={"cuda:1": "cuda:0"},
         )
         model.learner.augment1 = model.learner.augment2 = nn.Sequential(

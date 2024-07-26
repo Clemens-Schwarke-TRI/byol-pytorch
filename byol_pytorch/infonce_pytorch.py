@@ -55,7 +55,7 @@ class RandomApply(nn.Module):
 
 
 # MLP class for projector and predictor
-def MLP(dim, projection_size, hidden_size=4096):
+def MLP(dim, projection_size, hidden_size):
     return nn.Sequential(
         nn.Linear(dim, hidden_size),
         nn.BatchNorm1d(hidden_size),
@@ -73,7 +73,7 @@ class NetWrapper(nn.Module):
         net,
         projection_size,
         projection_hidden_size,
-        layer=-2,
+        layer,
     ):
         super().__init__()
         self.net = net
@@ -147,13 +147,15 @@ class InfoNCE(nn.Module):
         self,
         net,
         image_size,
-        hidden_layer=-2,
-        projection_size=256,
-        projection_hidden_size=4096,
+        hidden_layer,
+        projection_size,
+        projection_hidden_size,
+        reg_lambda=0,
     ):
         super().__init__()
         self.net = net
         self.loss = InfoNCELoss(negative_mode="paired")
+        self.reg_lambda = reg_lambda
 
         # default SimCLR augmentation
         DEFAULT_AUG = torch.nn.Sequential(
@@ -223,9 +225,13 @@ class InfoNCE(nn.Module):
             0, (batch_size, num_negatives)
         )
 
-        loss = self.loss(
+        nce_loss = self.loss(
             online_projections_a,
             online_projections_p,
             online_projections_n,
         )
-        return loss.mean()
+
+        # regularize with L1
+        reg_loss = self.reg_lambda * torch.sum(torch.abs(online_projections), dim=-1)
+
+        return (nce_loss + reg_loss).mean()

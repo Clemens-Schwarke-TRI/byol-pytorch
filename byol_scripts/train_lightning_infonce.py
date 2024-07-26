@@ -25,7 +25,7 @@ args = parser.parse_args()
 
 # constants
 BATCH_SIZE = 64
-EPOCHS = 100
+EPOCHS = 50
 LR = 3e-4
 IMAGE_SIZE = 256
 IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
