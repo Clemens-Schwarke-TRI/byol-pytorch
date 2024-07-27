@@ -60,6 +60,9 @@ def MLP(dim, projection_size, hidden_size):
         nn.Linear(dim, hidden_size),
         nn.BatchNorm1d(hidden_size),
         nn.ReLU(inplace=True),
+        nn.Linear(hidden_size, hidden_size),
+        nn.BatchNorm1d(hidden_size),
+        nn.ReLU(inplace=True),
         nn.Linear(hidden_size, projection_size),
     )
 

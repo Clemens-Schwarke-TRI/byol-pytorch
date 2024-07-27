@@ -8,8 +8,8 @@ from torch.utils.data import DataLoader
 from byol_pytorch import InfoNCE, TripletDataset, ImagePoseDataset
 import pytorch_lightning as pl
 
-# test model, a resnet 50
-resnet = models.resnet50(models.ResNet50_Weights.DEFAULT)
+# test model, a resnet 18
+resnet = models.resnet18(models.ResNet18_Weights.DEFAULT)
 
 # arguments
 parser = argparse.ArgumentParser(description="infonce_lightning")
@@ -24,8 +24,8 @@ parser.add_argument(
 args = parser.parse_args()
 
 # constants
-BATCH_SIZE = 64
-EPOCHS = 50
+BATCH_SIZE = 128
+EPOCHS = 100
 LR = 3e-4
 IMAGE_SIZE = 256
 IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
@@ -60,8 +60,8 @@ if __name__ == "__main__":
         resnet,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
-        projection_size=256,
-        projection_hidden_size=4096,
+        projection_size=32,
+        projection_hidden_size=256,
     )
 
     trainer = pl.Trainer(

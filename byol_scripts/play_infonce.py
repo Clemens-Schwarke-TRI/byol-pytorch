@@ -80,13 +80,13 @@ if __name__ == "__main__":
         )
 
         # create model
-        net = models.resnet50()
+        net = models.resnet18()
         model = SelfSupervisedLearner.load_from_checkpoint(
-            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_114_bs_256_latent_2/checkpoints/epoch=40-step=12382.ckpt",
+            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_119_bs_512_neg_2_resnet_18_chuning_clemens_data/checkpoints/epoch=150-step=63873.ckpt",
             net=net,
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",
-            projection_size=2,
+            projection_size=32,
             projection_hidden_size=256,
             # map_location={"cuda:1": "cuda:0"},
         )

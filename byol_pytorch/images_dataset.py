@@ -249,7 +249,7 @@ class ImagePoseDataset(Dataset):
         self,
         folder,
         image_size,
-        num_negatives=1,
+        num_negatives=2,
         ratio_positives=0.7,
         threshold_positives=0.2,
         threshold_negatives=0.3,
@@ -299,7 +299,8 @@ class ImagePoseDataset(Dataset):
                     self.paths[camera].append(path)
             print(f"{len(self.paths[camera])} images found for {camera}")
         self.min_length = min(len(paths) for paths in self.paths.values())
-        print(f"Number of samples: {self.min_length * len(self.combinations)}")
+        self.length = self.min_length * len(self.combinations)
+        print(f"Number of samples: {self.length}")
 
         # compute distances between all poses
         poses_torch = torch.tensor(self.poses.values, dtype=torch.float32)
@@ -311,9 +312,10 @@ class ImagePoseDataset(Dataset):
         self.distances = (diff**2).sum(-1).sqrt()
 
     def __len__(self):
-        return self.min_length * len(self.combinations)
+        return self.length * 10
 
     def __getitem__(self, index):
+        index = index % self.length
         combination_index = index // self.min_length
         image_index = index % self.min_length
 
