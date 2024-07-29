@@ -62,14 +62,14 @@ if __name__ == "__main__":
     )
 
     # create model
-    net = models.resnet50()
+    net = models.resnet18()
     model = SelfSupervisedLearner.load_from_checkpoint(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_114_decoder_for_bs_384_on_all_data_v2/checkpoints/epoch=15-step=10288.ckpt",
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_121_decoder_for_v_119_on_all_data_v2/checkpoints/epoch=99-step=32200.ckpt",
         net=net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
-        projection_size=256,
-        projection_hidden_size=4096,
+        projection_size=32,
+        projection_hidden_size=256,
     )
     model.eval()
 

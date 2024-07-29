@@ -13,7 +13,7 @@ from byol_pytorch import (
 import pytorch_lightning as pl
 
 # test model, a resnet 50
-resnet = models.resnet50()
+resnet = models.resnet18()
 
 # arguments
 parser = argparse.ArgumentParser(description="decoder_lightning")
@@ -28,7 +28,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # constants
-BATCH_SIZE = 128
+BATCH_SIZE = 256
 EPOCHS = 100
 LR = 1e-3
 IMAGE_SIZE = 256
@@ -66,13 +66,13 @@ if __name__ == "__main__":
         resnet,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
-        projection_size=256,
-        projection_hidden_size=4096,
+        projection_size=32,
+        projection_hidden_size=256,
     )
 
     # load encoder
     checkpoint = torch.load(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_104_bs_384_neg_1_thresh_0.2-0.3_ratio_0.7/checkpoints/epoch=99-step=20100.ckpt"
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_119_bs_512_neg_2_resnet_18_chuning_clemens_data/checkpoints/epoch=150-step=63873.ckpt"
     )
     encoder_weights = {
         k.replace("learner.online_encoder.", ""): v

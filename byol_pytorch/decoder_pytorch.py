@@ -16,9 +16,10 @@ class DecoderNet(nn.Module):
 
         # Initialize the FCN
         fc_layers = nn.Sequential(
-            nn.Linear(256, 1024),
+            nn.Linear(32, 256),
+            nn.BatchNorm1d(256),
             nn.ReLU(),
-            nn.Linear(1024, 2048),
+            nn.Linear(256, 2048),
         )
 
         # Initialize the CNN network

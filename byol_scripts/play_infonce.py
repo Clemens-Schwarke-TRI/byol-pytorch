@@ -82,7 +82,7 @@ if __name__ == "__main__":
         # create model
         net = models.resnet18()
         model = SelfSupervisedLearner.load_from_checkpoint(
-            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_119_bs_512_neg_2_resnet_18_chuning_clemens_data/checkpoints/epoch=150-step=63873.ckpt",
+            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_122_bs_512_cc_with_augmentations_and_reg_1e-3/checkpoints/epoch=99-step=42300.ckpt",
             net=net,
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",

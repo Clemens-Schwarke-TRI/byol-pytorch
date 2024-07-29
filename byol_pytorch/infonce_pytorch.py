@@ -153,7 +153,7 @@ class InfoNCE(nn.Module):
         hidden_layer,
         projection_size,
         projection_hidden_size,
-        reg_lambda=0,
+        reg_lambda=1e-3,
     ):
         super().__init__()
         self.net = net
@@ -162,10 +162,10 @@ class InfoNCE(nn.Module):
 
         # default SimCLR augmentation
         DEFAULT_AUG = torch.nn.Sequential(
-            # RandomApply(T.ColorJitter(0.8, 0.8, 0.8, 0.2), p=0.1),
-            # T.RandomGrayscale(p=0.1),
-            # RandomApply(T.GaussianBlur((3, 3), (1.0, 2.0)), p=0.1),
-            # T.RandomResizedCrop(size=(image_size, image_size), scale=(0.8, 1.0)),
+            RandomApply(T.ColorJitter(0.8, 0.8, 0.8, 0.2), p=0.1),
+            T.RandomGrayscale(p=0.1),
+            RandomApply(T.GaussianBlur((3, 3), (1.0, 2.0)), p=0.1),
+            T.RandomResizedCrop(size=(image_size, image_size), scale=(0.8, 1.0)),
             T.Normalize(
                 mean=torch.tensor([0.485, 0.456, 0.406]),
                 std=torch.tensor([0.229, 0.224, 0.225]),
