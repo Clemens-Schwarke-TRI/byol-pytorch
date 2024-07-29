@@ -148,6 +148,10 @@ if __name__ == "__main__":
         ]
     )
 
+    # compute l1 norm of projections
+    # norm = np.linalg.norm(projections_all, ord=1, axis=1)
+    # print(f"Mean L1 norm of projections: {np.mean(norm):.2f}")
+
     # t-SNE visualization
     labels = np.array(
         [0] * len(projections_camera_1)

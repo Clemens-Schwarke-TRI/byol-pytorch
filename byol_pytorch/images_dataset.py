@@ -253,6 +253,9 @@ class ImagePoseDataset(Dataset):
         ratio_positives=0.7,
         threshold_positives=0.2,
         threshold_negatives=0.3,
+        paths=None,
+        combinations=None,
+        transform=None,
     ):
         super().__init__()
         self.folder = folder
@@ -260,37 +263,44 @@ class ImagePoseDataset(Dataset):
         self.ratio_positives = ratio_positives
         self.threshold_positives = threshold_positives
         self.threshold_negatives = threshold_negatives
+        if paths is None:
+            self.paths = {
+                "camera_1": [],
+                "camera_2": [],
+                "camera_3": [],
+                "camera_4": [],
+            }
+        else:
+            self.paths = paths
+        if combinations is None:
+            self.combinations = [
+                ("camera_1", "camera_2"),
+                ("camera_1", "camera_3"),
+                ("camera_1", "camera_4"),
+                ("camera_2", "camera_1"),
+                ("camera_2", "camera_3"),
+                ("camera_2", "camera_4"),
+                ("camera_3", "camera_1"),
+                ("camera_3", "camera_2"),
+                ("camera_3", "camera_4"),
+                ("camera_4", "camera_1"),
+                ("camera_4", "camera_2"),
+                ("camera_4", "camera_3"),
+            ]
+        else:
+            self.combinations = combinations
+        if transform is None:
+            self.transform = transforms.Compose(
+                [
+                    transforms.Resize((image_size, image_size)),
+                    transforms.ToTensor(),
+                ]
+            )
+        else:
+            self.transform = transform
 
         with open(Path(folder, "poses.pkl"), "rb") as f:
             self.poses = pickle.load(f)
-
-        self.paths = {
-            "camera_1": [],
-            "camera_2": [],
-            "camera_3": [],
-            "camera_4": [],
-        }
-        self.combinations = [
-            ("camera_1", "camera_2"),
-            ("camera_1", "camera_3"),
-            ("camera_1", "camera_4"),
-            ("camera_2", "camera_1"),
-            ("camera_2", "camera_3"),
-            ("camera_2", "camera_4"),
-            ("camera_3", "camera_1"),
-            ("camera_3", "camera_2"),
-            ("camera_3", "camera_4"),
-            ("camera_4", "camera_1"),
-            ("camera_4", "camera_2"),
-            ("camera_4", "camera_3"),
-        ]
-        self.transform = transforms.Compose(
-            [
-                transforms.Resize((image_size, image_size)),
-                transforms.ToTensor(),
-            ]
-        )
-
         for camera in self.paths.keys():
             sorted_paths = sorted(Path(folder, camera).glob("*"))
             for path in sorted_paths:
@@ -358,3 +368,18 @@ class ImagePoseDataset(Dataset):
         # plt.show()
 
         return torch.stack([image_a, image_p, *images_n], dim=0)
+
+
+class TwoDatasetsDataset(Dataset):
+    def __init__(self, dataset1, dataset2):
+        super().__init__()
+        self.dataset1 = dataset1
+        self.dataset2 = dataset2
+
+    def __len__(self):
+        return len(self.dataset1) + len(self.dataset2)
+
+    def __getitem__(self, index):
+        if index < len(self.dataset1):
+            return self.dataset1[index]
+        return self.dataset2[index - len(self.dataset1)]
