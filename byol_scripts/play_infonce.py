@@ -165,6 +165,7 @@ if __name__ == "__main__":
         print("Fitting t-SNE ...")
         start = time.time()
         projections_tsne = tsne.fit_transform(projections_all)
+        # projections_tsne = projections_all
         print(f"t-SNE took {time.time() - start:.2f} seconds")
 
         np.save("projections/projections_tsne.npy", projections_tsne)
@@ -202,6 +203,44 @@ if __name__ == "__main__":
         plt.xlabel("t-SNE Component 1")
         plt.ylabel("t-SNE Component 2")
         plt.show()
+
+        # # plot all dimensions
+        # fig, axes = plt.subplots(4, 4, figsize=(20, 20))
+        # for i in range(4):
+        #     for j in range(4):
+        #         ax = axes[i, j]
+        #         dim1 = 2 * (i * 4 + j)
+        #         dim2 = dim1 + 1
+
+        #         ax.scatter(
+        #             projections_tsne[labels == 0, dim1],
+        #             projections_tsne[labels == 0, dim2],
+        #             label="camera_1",
+        #             alpha=0.1,
+        #         )
+        #         ax.scatter(
+        #             projections_tsne[labels == 1, dim1],
+        #             projections_tsne[labels == 1, dim2],
+        #             label="camera_2",
+        #             alpha=0.1,
+        #         )
+        #         ax.scatter(
+        #             projections_tsne[labels == 2, dim1],
+        #             projections_tsne[labels == 2, dim2],
+        #             label="camera_3",
+        #             alpha=0.1,
+        #         )
+        #         ax.scatter(
+        #             projections_tsne[labels == 3, dim1],
+        #             projections_tsne[labels == 3, dim2],
+        #             label="camera_4",
+        #             alpha=0.1,
+        #         )
+        #         ax.set_title(f"Dimensions {dim1} and {dim2}")
+        #         ax.legend()
+
+        # plt.tight_layout()
+        # plt.show()
 
     elif args.plot == "points":
         plt.figure(figsize=(10, 8))
