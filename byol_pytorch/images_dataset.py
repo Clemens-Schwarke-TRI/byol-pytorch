@@ -371,23 +371,6 @@ class ImagePoseDataset(Dataset):
         return torch.stack([image_a, image_p, *images_n], dim=0)
 
 
-class TwoDatasetsDataset(Dataset):
-    def __init__(self, dataset1, dataset2):
-        super().__init__()
-        self.dataset1 = dataset1
-        self.dataset2 = dataset2
-        self.len_dataset1 = len(dataset1)
-        self.len_dataset2 = len(dataset2)
-
-    def __len__(self):
-        return self.len_dataset1 + self.len_dataset2
-
-    def __getitem__(self, index):
-        if index < self.len_dataset1:
-            return self.dataset1[index]
-        return self.dataset2[index - self.len_dataset1]
-
-
 class PickleFileDataset(Dataset):
     def __init__(self, file_path, image_size):
         super().__init__()

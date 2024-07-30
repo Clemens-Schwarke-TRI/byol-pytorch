@@ -5,7 +5,7 @@ import torch
 from torchvision import models
 from torch.utils.data import DataLoader
 
-from byol_pytorch import InfoNCE, TwoDatasetsDataset, ImagePoseDataset
+from byol_pytorch import InfoNCE, ImagePoseDataset
 import pytorch_lightning as pl
 
 # test model, a resnet 18
@@ -14,22 +14,8 @@ resnet = models.resnet18(models.ResNet18_Weights.DEFAULT)
 # arguments
 parser = argparse.ArgumentParser(description="infonce_lightning")
 
-# parser.add_argument(
-#     "--image_folder",
-#     type=str,
-#     required=True,
-#     help="path to your folder of images for self-supervised learning",
-# )
-
 parser.add_argument(
-    "--image_folder_cc",
-    type=str,
-    required=True,
-    help="path to your folder of images for self-supervised learning",
-)
-
-parser.add_argument(
-    "--image_folder_ac",
+    "--image_folder",
     type=str,
     required=True,
     help="path to your folder of images for self-supervised learning",
@@ -65,23 +51,7 @@ class SelfSupervisedLearner(pl.LightningModule):
 
 # main
 if __name__ == "__main__":
-    dscc = ImagePoseDataset(args.image_folder_cc, IMAGE_SIZE)
-    dsac = ImagePoseDataset(
-        args.image_folder_ac,
-        IMAGE_SIZE,
-        paths={"camera_1": [], "camera_2": [], "camera_3": []},
-        combinations=[
-            ("camera_1", "camera_2"),
-            ("camera_1", "camera_3"),
-            ("camera_2", "camera_1"),
-            ("camera_2", "camera_3"),
-            ("camera_3", "camera_1"),
-            ("camera_3", "camera_2"),
-        ],
-    )
-
-    ds = TwoDatasetsDataset(dscc, dsac)
-    # ds = ImagePoseDataset(args.image_folder, IMAGE_SIZE)
+    ds = ImagePoseDataset(args.image_folder, IMAGE_SIZE)
     train_loader = DataLoader(
         ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=multiprocessing.cpu_count()
     )

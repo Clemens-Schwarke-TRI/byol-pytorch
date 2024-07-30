@@ -10,6 +10,5 @@ from byol_pytorch.images_dataset import (
     ImageDataset,
     TwoImageDataset,
     ImagePoseDataset,
-    TwoDatasetsDataset,
     PickleFileDataset,
 )
