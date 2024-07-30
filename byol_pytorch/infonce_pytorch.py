@@ -59,10 +59,10 @@ def MLP(dim, projection_size, hidden_size):
     return nn.Sequential(
         nn.Linear(dim, hidden_size),
         nn.BatchNorm1d(hidden_size),
-        nn.ReLU(inplace=True),
+        nn.ReLU(),
         nn.Linear(hidden_size, hidden_size),
         nn.BatchNorm1d(hidden_size),
-        nn.ReLU(inplace=True),
+        nn.ReLU(),
         nn.Linear(hidden_size, projection_size),
     )
 
@@ -199,7 +199,7 @@ class InfoNCE(nn.Module):
         images = self.augment(images)
 
         # get embeddings, normalize and reshape
-        online_projections = self.online_encoder(images)
+        online_projections = self.online_encoder(images.contiguous())
         online_projections = F.normalize(online_projections, dim=-1, p=2)
         online_projections = online_projections.view(
             batch_size, -1, online_projections.shape[-1]

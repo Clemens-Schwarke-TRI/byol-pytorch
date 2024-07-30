@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     trainer = pl.Trainer(
         devices=[0, 1, 2, 3],
-        callbacks=[pl.callbacks.ModelCheckpoint(every_n_epochs=1, save_top_k=-1)],
+        callbacks=[pl.callbacks.ModelCheckpoint(every_n_epochs=1, save_top_k=1)],
         max_epochs=EPOCHS,
         strategy="ddp_find_unused_parameters_true",
         sync_batchnorm=True,
