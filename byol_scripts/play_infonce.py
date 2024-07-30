@@ -66,6 +66,12 @@ class SelfSupervisedLearner(pl.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=LR)
 
 
+def check_for_nan_hook(module, input, output):
+    if torch.isnan(output).any():
+        print(f"NaN detected in {module}")
+        print(f"Input: {input}")
+
+
 # main
 if __name__ == "__main__":
     # load model and compute projections
@@ -90,13 +96,18 @@ if __name__ == "__main__":
             projection_hidden_size=256,
             # map_location={"cuda:1": "cuda:0"},
         )
-        model.learner.augment1 = model.learner.augment2 = nn.Sequential(
+        model.learner.augment = nn.Sequential(
             T.Normalize(
                 mean=torch.tensor([0.485, 0.456, 0.406]),
                 std=torch.tensor([0.229, 0.224, 0.225]),
             ),
         )
         model.eval()
+
+        hooks = []
+        for name, layer in model.named_modules():
+            hook = layer.register_forward_hook(check_for_nan_hook)
+            hooks.append(hook)
 
         with torch.no_grad():
             # play model
@@ -112,13 +123,17 @@ if __name__ == "__main__":
                     model.device
                 )
                 projections_out = model.learner(images, return_embedding=True)
-                projection_a, projection_b, _ = projections_out.chunk(3, dim=0)
+                projection_a = projections_out[:, 0]
+                projection_b = projections_out[:, 1]
 
                 for i in range(len(camera_a)):
                     projections[camera_a[i]].append(projection_a[i])
                     projections[camera_b[i]].append(projection_b[i])
                 print(f"Step {idx+1} of {len(dataloader)}")
             print(f"Projections took {time.time() - start:.2f} seconds")
+
+            for hook in hooks:
+                hook.remove()
 
             # convert to numpy
             projections_camera_1 = torch.stack(projections["camera_1"]).cpu().numpy()

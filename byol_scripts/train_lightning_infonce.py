@@ -14,6 +14,13 @@ resnet = models.resnet18(models.ResNet18_Weights.DEFAULT)
 # arguments
 parser = argparse.ArgumentParser(description="infonce_lightning")
 
+# parser.add_argument(
+#     "--image_folder",
+#     type=str,
+#     required=True,
+#     help="path to your folder of images for self-supervised learning",
+# )
+
 parser.add_argument(
     "--image_folder_cc",
     type=str,
@@ -74,6 +81,7 @@ if __name__ == "__main__":
     )
 
     ds = TwoDatasetsDataset(dscc, dsac)
+    # ds = ImagePoseDataset(args.image_folder, IMAGE_SIZE)
     train_loader = DataLoader(
         ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=multiprocessing.cpu_count()
     )
@@ -88,6 +96,7 @@ if __name__ == "__main__":
 
     trainer = pl.Trainer(
         devices=[0, 1, 2, 3],
+        callbacks=[pl.callbacks.ModelCheckpoint(every_n_epochs=1, save_top_k=-1)],
         max_epochs=EPOCHS,
         strategy="ddp_find_unused_parameters_true",
         sync_batchnorm=True,

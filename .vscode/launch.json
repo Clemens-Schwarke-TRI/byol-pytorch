@@ -56,7 +56,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--image_folder",
-                "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_v1"
+                "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_poses_chuning_clemens_v2"
             ]
         },
         {
@@ -90,6 +90,17 @@
             "args": [
                 "--image_folder",
                 "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_v1"
+            ]
+        },
+        {
+            "name": "Export Embeddings",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/byol_scripts/export_embeddings.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--file_path",
+                "/home/clemensschwarke/Desktop/data/0610_without_with_jug/Chuning/10hz/ep0.pkl"
             ]
         },
     ]

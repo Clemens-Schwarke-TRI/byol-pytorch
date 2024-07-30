@@ -3,6 +3,7 @@ from pathlib import Path
 from PIL import Image
 import random
 import pickle
+import numpy as np
 
 import torch
 from torchvision import transforms
@@ -58,8 +59,8 @@ class TwoImagesDataset(Dataset):
         path_a = self.paths[camera_a][image_index]
         path_b = self.paths[camera_b][image_index]
 
-        image_a = self.transform(Image.open(path_a).convert("RGB"))
-        image_b = self.transform(Image.open(path_b).convert("RGB"))
+        image_a = self.transform(Image.open(path_a))
+        image_b = self.transform(Image.open(path_b))
 
         return image_a, image_b
 
@@ -87,8 +88,8 @@ class TwoImagesLabelledDataset(TwoImagesDataset):
         path_a = self.paths[camera_a][image_index]
         path_b = self.paths[camera_b][image_index]
 
-        image_a = self.transform(Image.open(path_a).convert("RGB"))
-        image_b = self.transform(Image.open(path_b).convert("RGB"))
+        image_a = self.transform(Image.open(path_a))
+        image_b = self.transform(Image.open(path_b))
 
         return image_a, image_b, camera_a, camera_b
 
@@ -154,9 +155,9 @@ class TripletDataset(Dataset):
         path_p = self.paths[camera_p][image_index]
         path_n = self.paths[camera_a][random_index]
 
-        image_a = self.transform(Image.open(path_a).convert("RGB"))
-        image_p = self.transform(Image.open(path_p).convert("RGB"))
-        image_n = self.transform(Image.open(path_n).convert("RGB"))
+        image_a = self.transform(Image.open(path_a))
+        image_p = self.transform(Image.open(path_p))
+        image_n = self.transform(Image.open(path_n))
 
         return torch.stack([image_a, image_p, image_n], dim=0)
 
@@ -186,9 +187,9 @@ class TripletDatasetAugmentedPositives(TripletDataset):
         else:
             path_p = self.paths[camera_p][image_index]
 
-        image_a = self.transform(Image.open(path_a).convert("RGB"))
-        image_p = self.transform(Image.open(path_p).convert("RGB"))
-        image_n = self.transform(Image.open(path_n).convert("RGB"))
+        image_a = self.transform(Image.open(path_a))
+        image_p = self.transform(Image.open(path_p))
+        image_n = self.transform(Image.open(path_n))
 
         return torch.stack([image_a, image_p, image_n], dim=0)
 
@@ -221,7 +222,7 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, index):
         index = index % len(self.paths)
-        image = self.transform(Image.open(self.paths[index]).convert("RGB"))
+        image = self.transform(Image.open(self.paths[index]))
         return image
 
 
@@ -239,8 +240,8 @@ class TwoImageDataset(ImageDataset):
 
     def __getitem__(self, index):
         index = index % len(self.paths)
-        image = self.transform(Image.open(self.paths[index]).convert("RGB"))
-        image2 = self.transform(Image.open(self.paths2[index]).convert("RGB"))
+        image = self.transform(Image.open(self.paths[index]))
+        image2 = self.transform(Image.open(self.paths2[index]))
         return image, image2
 
 
@@ -322,7 +323,7 @@ class ImagePoseDataset(Dataset):
         self.distances = (diff**2).sum(-1).sqrt()
 
     def __len__(self):
-        return self.length * 10
+        return self.length * 5
 
     def __getitem__(self, index):
         index = index % self.length
@@ -333,7 +334,7 @@ class ImagePoseDataset(Dataset):
 
         # anchor
         path_a = self.paths[camera_a][image_index]
-        image_a = self.transform(Image.open(path_a).convert("RGB"))
+        image_a = self.transform(Image.open(path_a))
 
         # positive
         if random.random() < self.ratio_positives:
@@ -346,7 +347,7 @@ class ImagePoseDataset(Dataset):
                 random_index = torch.randint(0, self.min_length, (1,)).item()
                 dist = self.distances[image_index, random_index]
             path_p = self.paths[camera_a][random_index]
-        image_p = self.transform(Image.open(path_p).convert("RGB"))
+        image_p = self.transform(Image.open(path_p))
 
         # negative
         images_n = []
@@ -356,11 +357,11 @@ class ImagePoseDataset(Dataset):
                 random_index = torch.randint(0, self.min_length, (1,)).item()
                 dist = self.distances[image_index, random_index]
             path_n = self.paths[camera_a][random_index]
-            images_n.append(self.transform(Image.open(path_n).convert("RGB")))
+            images_n.append(self.transform(Image.open(path_n)))
 
         # import matplotlib.pyplot as plt
 
-        # fig, axes = plt.subplots(1, 2 + self.num_negatives)
+        # fig, axes = plt.subplots(1, 2 + self.num_negatives, figsize=(20, 5))
         # axes[0].imshow(image_a.permute(1, 2, 0))
         # axes[1].imshow(image_p.permute(1, 2, 0))
         # for i, image_n in enumerate(images_n):
@@ -375,11 +376,42 @@ class TwoDatasetsDataset(Dataset):
         super().__init__()
         self.dataset1 = dataset1
         self.dataset2 = dataset2
+        self.len_dataset1 = len(dataset1)
+        self.len_dataset2 = len(dataset2)
 
     def __len__(self):
-        return len(self.dataset1) + len(self.dataset2)
+        return self.len_dataset1 + self.len_dataset2
 
     def __getitem__(self, index):
-        if index < len(self.dataset1):
+        if index < self.len_dataset1:
             return self.dataset1[index]
-        return self.dataset2[index - len(self.dataset1)]
+        return self.dataset2[index - self.len_dataset1]
+
+
+class PickleFileDataset(Dataset):
+    def __init__(self, file_path, image_size):
+        super().__init__()
+        with open(file_path, "rb") as f:
+            self.data = pickle.load(f)
+            self.transform = transforms.Compose(
+                [
+                    transforms.Resize((image_size, image_size)),
+                    transforms.ToTensor(),
+                ]
+            )
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        row = self.data.iloc[index]
+
+        images = row["observations", "images"]
+        state = row["observations", "state"]
+        action = row["policy_action", "action"]
+
+        camera_1 = self.transform(Image.fromarray(images[:240, :, ::-1]))
+        camera_2 = self.transform(Image.fromarray(images[240:480, :, ::-1]))
+        camera_3 = self.transform(Image.fromarray(images[480:720, :, ::-1]))
+
+        return camera_1, camera_2, camera_3, state, action

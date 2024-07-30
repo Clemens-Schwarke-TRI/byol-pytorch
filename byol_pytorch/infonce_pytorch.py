@@ -133,12 +133,8 @@ class NetWrapper(nn.Module):
         assert hidden is not None, f"hidden layer {self.layer} never emitted an output"
         return hidden
 
-    def forward(self, x, return_projection=True):
+    def forward(self, x):
         representation = self.get_representation(x)
-
-        if not return_projection:
-            return representation
-
         projector = self._get_projector(representation)
         projection = projector(representation)
         return projection
@@ -153,7 +149,7 @@ class InfoNCE(nn.Module):
         hidden_layer,
         projection_size,
         projection_hidden_size,
-        reg_lambda=1e-3,
+        reg_lambda=1e-4,
     ):
         super().__init__()
         self.net = net
@@ -172,9 +168,7 @@ class InfoNCE(nn.Module):
             ),
         )
 
-        self.augment1 = DEFAULT_AUG
-        self.augment2 = DEFAULT_AUG
-        self.augment3 = DEFAULT_AUG
+        self.augment = DEFAULT_AUG
 
         self.online_encoder = NetWrapper(
             net,
@@ -192,49 +186,39 @@ class InfoNCE(nn.Module):
             torch.randn(2, 3, 3, image_size, image_size, device=device),
         )
 
-    def forward(self, images, return_embedding=False, return_projection=True):
+    def forward(self, images, return_embedding=False):
         assert not (
             self.training and images.shape[0] == 1
         ), "you must have greater than 1 sample when training, due to the batchnorm in the projection layer"
 
-        batch_size = images.shape[0]  # B
-        num_negatives = images.shape[1] - 2  # N
-        sizes = [batch_size, batch_size, batch_size * num_negatives]
+        # reshape from [B, 1+1+N, C, H, W] to [B*1+1+N, C, H, W]
+        batch_size = images.shape[0]
+        images = images.view(-1, *images.shape[2:])
 
-        # augment and reshape from [B, 1+1+N, C, H, W] to [B*1+1+N, C, H, W]
-        image_a = images[:, 0]
-        image_p = images[:, 1]
-        image_n = images[:, 2:].flatten(0, 1)
+        # image augmentation
+        images = self.augment(images)
 
-        image_a, image_p, image_n = (
-            self.augment1(image_a),
-            self.augment2(image_p),
-            self.augment3(image_n),
-        )
-        images = torch.cat((image_a, image_p, image_n), dim=0)
-
-        if return_embedding:
-            online_projections = self.online_encoder(
-                images, return_projection=return_projection
-            )
-            return F.normalize(online_projections, dim=-1, p=2)
-
+        # get embeddings, normalize and reshape
         online_projections = self.online_encoder(images)
         online_projections = F.normalize(online_projections, dim=-1, p=2)
-        online_projections_a, online_projections_p, online_projections_n = (
-            online_projections.split(sizes, dim=0)
-        )
-        online_projections_n = online_projections_n.unflatten(
-            0, (batch_size, num_negatives)
+        online_projections = online_projections.view(
+            batch_size, -1, online_projections.shape[-1]
         )
 
+        # return embedding for inference
+        if return_embedding:
+            return online_projections
+
+        # compute loss
         nce_loss = self.loss(
-            online_projections_a,
-            online_projections_p,
-            online_projections_n,
+            online_projections[:, 0],
+            online_projections[:, 1],
+            online_projections[:, 2:],
         )
 
         # regularize with L1
-        reg_loss = self.reg_lambda * torch.sum(torch.abs(online_projections), dim=-1)
+        reg_loss = (
+            self.reg_lambda * torch.sum(torch.abs(online_projections), dim=-1)
+        ).mean()
 
-        return (nce_loss + reg_loss).mean()
+        return nce_loss + reg_loss
