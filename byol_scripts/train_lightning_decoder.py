@@ -41,7 +41,7 @@ class SelfSupervisedLearner(pl.LightningModule):
         super().__init__()
         model = InfoNCE(net, **kwargs)
         encoder = model.online_encoder
-        self.learner = Decoder(encoder)
+        self.learner = Decoder(encoder, IMAGE_SIZE)
 
     def forward(self, images):
         return self.learner.compute_loss(images)

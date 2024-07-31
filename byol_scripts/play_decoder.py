@@ -10,10 +10,10 @@ import multiprocessing
 from MulticoreTSNE import MulticoreTSNE as TSNE
 from scipy.spatial.distance import cdist
 from torch import nn
-from torchvision import transforms
+from torchvision import transforms as T
 from torchvision import models
 
-from byol_pytorch import InfoNCE, Decoder, ImageDataset, TwoImageDataset
+from byol_pytorch import InfoNCE, Decoder, TwoImageDataset
 
 # arguments
 parser = argparse.ArgumentParser(description="plot_decoder")
@@ -37,7 +37,7 @@ class SelfSupervisedLearner(pl.LightningModule):
         super().__init__()
         model = InfoNCE(net, **kwargs)
         encoder = model.online_encoder
-        self.learner = Decoder(encoder)
+        self.learner = Decoder(encoder, IMAGE_SIZE)
 
     def forward(self, images):
         return self.learner.compute_loss(images)
@@ -64,21 +64,27 @@ if __name__ == "__main__":
     # create model
     net = models.resnet18()
     model = SelfSupervisedLearner.load_from_checkpoint(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_121_decoder_for_v_119_on_all_data_v2/checkpoints/epoch=99-step=32200.ckpt",
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_134_decoder_for_132/checkpoints/epoch=99-step=32200.ckpt",
         net=net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
         projection_size=32,
         projection_hidden_size=256,
     )
+    model.learner.augment = nn.Sequential(
+        T.Normalize(
+            mean=torch.tensor([0.485, 0.456, 0.406]),
+            std=torch.tensor([0.229, 0.224, 0.225]),
+        ),
+    )
     model.eval()
 
-    denormalize = transforms.Compose(
+    denormalize = T.Compose(
         [
-            transforms.Normalize(
+            T.Normalize(
                 mean=[0.0, 0.0, 0.0], std=[1 / 0.229, 1 / 0.224, 1 / 0.225]
             ),
-            transforms.Normalize(mean=[-0.485, -0.456, -0.406], std=[1.0, 1.0, 1.0]),
+            T.Normalize(mean=[-0.485, -0.456, -0.406], std=[1.0, 1.0, 1.0]),
         ]
     )
 
@@ -86,12 +92,10 @@ if __name__ == "__main__":
         fig, ax = plt.subplots(1, 3, figsize=(30, 10))
         for i, (image, image2) in enumerate(dataloader):
             output_image = model.learner(image.to(model.device))
-            image = denormalize(image[0])
             output_image = denormalize(output_image[0])
-            image2 = denormalize(image2[0])
 
             ax[0].clear()
-            ax[0].imshow(image.cpu().numpy().transpose(1, 2, 0))
+            ax[0].imshow(image[0].cpu().numpy().transpose(1, 2, 0))
             ax[0].set_title("Input Image")
             ax[0].axis("off")
             ax[1].clear()
@@ -99,7 +103,7 @@ if __name__ == "__main__":
             ax[1].set_title("Output Image")
             ax[1].axis("off")
             ax[2].clear()
-            ax[2].imshow(image2.cpu().numpy().transpose(1, 2, 0))
+            ax[2].imshow(image2[0].cpu().numpy().transpose(1, 2, 0))
             ax[2].set_title("Ground Truth Image")
             ax[2].axis("off")
 
