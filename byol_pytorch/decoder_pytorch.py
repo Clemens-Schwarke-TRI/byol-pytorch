@@ -79,7 +79,7 @@ class Decoder(nn.Module):
             param.requires_grad = False
         
         # default SimCLR augmentation
-        DEFAULT_AUG = torch.nn.Sequential(
+        self.augment = torch.nn.Sequential(
             RandomApply(T.ColorJitter(0.8, 0.8, 0.8, 0.2), p=0.1),
             T.RandomGrayscale(p=0.1),
             RandomApply(T.GaussianBlur((3, 3), (1.0, 2.0)), p=0.1),
@@ -89,7 +89,11 @@ class Decoder(nn.Module):
                 std=torch.tensor([0.229, 0.224, 0.225]),
             ),
         )
-        self.augment = DEFAULT_AUG
+       
+        self.normalize = T.Normalize(
+            mean=torch.tensor([0.485, 0.456, 0.406]),
+            std=torch.tensor([0.229, 0.224, 0.225]),
+        )
 
     def forward(self, x):
         with torch.no_grad():
@@ -98,4 +102,4 @@ class Decoder(nn.Module):
         return self.decoder(x)
 
     def compute_loss(self, x):
-        return F.mse_loss(self(x), x)
+        return F.mse_loss(self(x), self.normalize(x))
