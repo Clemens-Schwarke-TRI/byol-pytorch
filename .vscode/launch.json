@@ -103,5 +103,22 @@
                 "/home/clemensschwarke/Desktop/data/0610_without_with_jug/Chuning/10hz/ep0.pkl"
             ]
         },
+        {
+            "name": "Export Embeddings Npz",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/byol_scripts/export_embeddings_npz.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--file_path",
+                "/home/clemensschwarke/Desktop/data/0801_teleop_session_1/log_1/"
+                "--target_freq_ratio",
+                "2",
+                "--width",
+                "320"
+                "--height",
+                "240",
+            ]
+        },
     ]
 }

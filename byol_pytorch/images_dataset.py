@@ -4,6 +4,7 @@ from PIL import Image
 import random
 import pickle
 import numpy as np
+import cv2
 
 import torch
 from torchvision import transforms
@@ -372,12 +373,12 @@ class PickleFileDataset(Dataset):
         super().__init__()
         with open(file_path, "rb") as f:
             self.data = pickle.load(f)
-            self.transform = transforms.Compose(
-                [
-                    transforms.Resize((image_size, image_size)),
-                    transforms.ToTensor(),
-                ]
-            )
+        self.transform = transforms.Compose(
+            [
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),
+            ]
+        )
 
     def __len__(self):
         return len(self.data)
@@ -393,4 +394,73 @@ class PickleFileDataset(Dataset):
         camera_2 = self.transform(Image.fromarray(images[240:480, :, ::-1]))
         camera_3 = self.transform(Image.fromarray(images[480:720, :, ::-1]))
 
+        return camera_1, camera_2, camera_3, state, action
+
+
+class SpartanFileDataset(Dataset):
+    def __init__(self, file_path, target_freq_ratio, width, height, image_size):
+        super().__init__()
+        self.target_freq_ratio = target_freq_ratio
+        self.width = width  # needed for first resize to match legacy pipeline
+        self.height = height  # needed for first resize to match legacy pipeline
+        obs = np.load(os.path.join(file_path, "observations.npz"))
+        actions = np.load(os.path.join(file_path, "actions.npz"))
+
+        self.image_1 = obs["camera__image__1"]
+        self.image_2 = obs["camera__image__3"]
+        self.image_3 = obs["camera__image__2"]
+        self.pos_left = obs["robot__actual__joint_position__left"]
+        self.pos_right = obs["robot__actual__joint_position__right"]
+        self.vel_left = obs["robot__actual__joint_velocity__left"]
+        self.vel_right = obs["robot__actual__joint_velocity__right"]
+        self.actions = actions["actions"]
+
+        self.transform = transforms.Compose(
+            [
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),
+            ]
+        )
+
+    def __len__(self):
+        return len(self.image_1) // self.target_freq_ratio
+
+    def __getitem__(self, index):
+        index *= self.target_freq_ratio
+        camera_1 = self.transform(
+            Image.fromarray(
+                cv2.resize(
+                    self.image_1[index],
+                    (self.width, self.height),
+                    interpolation=cv2.INTER_LINEAR,
+                )
+            )
+        )
+        camera_2 = self.transform(
+            Image.fromarray(
+                cv2.resize(
+                    self.image_2[index],
+                    (self.width, self.height),
+                    interpolation=cv2.INTER_LINEAR,
+                )
+            )
+        )
+        camera_3 = self.transform(
+            Image.fromarray(
+                cv2.resize(
+                    self.image_3[index],
+                    (self.width, self.height),
+                    interpolation=cv2.INTER_LINEAR,
+                )
+            )
+        )
+        state = np.concatenate(
+            [
+                self.pos_left[index],
+                self.pos_right[index],
+                self.vel_left[index],
+                self.vel_right[index],
+            ]
+        )
+        action = self.actions[index]
         return camera_1, camera_2, camera_3, state, action

@@ -11,4 +11,5 @@ from byol_pytorch.images_dataset import (
     TwoImageDataset,
     ImagePoseDataset,
     PickleFileDataset,
+    SpartanFileDataset,
 )

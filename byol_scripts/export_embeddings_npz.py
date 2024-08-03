@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import multiprocessing
 import pandas as pd
+import os
 
 from MulticoreTSNE import MulticoreTSNE as TSNE
 from scipy.spatial.distance import cdist
@@ -14,7 +15,7 @@ from torch import nn
 from torchvision import transforms as T
 from torchvision import models
 
-from byol_pytorch import InfoNCE, PickleFileDataset
+from byol_pytorch import InfoNCE, SpartanFileDataset
 
 # arguments
 parser = argparse.ArgumentParser(description="export_embeddings")
@@ -22,7 +23,25 @@ parser.add_argument(
     "--file_path",
     type=str,
     required=True,
-    help="path to the pickle file",
+    help="path to the log folder",
+)
+parser.add_argument(
+    "--target_freq_ratio",
+    type=int,
+    required=True,
+    help="target frequency ratio",
+)
+parser.add_argument(
+    "--width",
+    type=int,
+    required=True,
+    help="width of the image for preprocessing",
+)
+parser.add_argument(
+    "--height",
+    type=int,
+    required=True,
+    help="height of the image for preprocessing",
 )
 args = parser.parse_args()
 
@@ -54,18 +73,20 @@ class SelfSupervisedLearner(pl.LightningModule):
 if __name__ == "__main__":
     # load model and compute projections
     # create dataset
-    dataset = PickleFileDataset(args.file_path, IMAGE_SIZE)
+    dataset = SpartanFileDataset(
+        args.file_path, args.target_freq_ratio, args.width, args.height, IMAGE_SIZE
+    )
     dataloader = torch.utils.data.DataLoader(
         dataset,
         shuffle=False,
         batch_size=BATCH_SIZE,
-        num_workers=multiprocessing.cpu_count(),
+        # num_workers=multiprocessing.cpu_count(),
     )
 
     # create model
     net = models.resnet18()
     model = SelfSupervisedLearner.load_from_checkpoint(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_122_bs_512_cc_with_augmentations_and_reg_1e-3/checkpoints/epoch=99-step=42300.ckpt",
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_141_ccmt/checkpoints/epoch=99-step=66200.ckpt",
         net=net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
@@ -108,8 +129,8 @@ if __name__ == "__main__":
     projections_camera_1 = [proj.cpu().numpy() for proj in projections["camera_1"]]
     projections_camera_2 = [proj.cpu().numpy() for proj in projections["camera_2"]]
     projections_camera_3 = [proj.cpu().numpy() for proj in projections["camera_3"]]
-    states = [state.cpu().numpy().astype(np.float32) for state in states]
-    actions = [action.cpu().numpy().astype(np.float32) for action in actions]
+    states = [s.cpu().numpy().astype(np.float32) for s in states]
+    actions = [a.cpu().numpy().astype(np.float32) for a in actions]
     data = {
         ("observations", "latent_camera_1"): projections_camera_1,
         ("observations", "latent_camera_2"): projections_camera_2,
@@ -119,5 +140,5 @@ if __name__ == "__main__":
     }
     df = pd.DataFrame(data)
 
-    df.to_pickle(args.file_path.replace(".pkl", "_with_latents.pkl"))
-    print(f"Saved dataframe to {args.file_path.replace('.pkl', '_with_latents.pkl')}")
+    df.to_pickle(os.path.join(args.file_path, "latents.pkl"))
+    print(f"Saved dataframe to {args.file_path}")
