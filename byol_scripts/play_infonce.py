@@ -26,7 +26,7 @@ parser.add_argument(
 parser.add_argument(
     "--plot",
     type=str,
-    choices=["cameras", "points", "distance", "live_plot", "live_plot_2"],
+    choices=["cameras", "embedding", "points", "distance", "live_plot", "live_plot_2"],
     default="cameras",
     help="plot cameras or points",
 )
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         # create model
         net = models.resnet18()
         model = SelfSupervisedLearner.load_from_checkpoint(
-            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_122_bs_512_cc_with_augmentations_and_reg_1e-3/checkpoints/epoch=99-step=42300.ckpt",
+            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_141_ccmt/checkpoints/epoch=99-step=66200.ckpt",
             net=net,
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",
@@ -219,43 +219,42 @@ if __name__ == "__main__":
         plt.ylabel("t-SNE Component 2")
         plt.show()
 
-        # # plot all dimensions
-        # fig, axes = plt.subplots(4, 4, figsize=(20, 20))
-        # for i in range(4):
-        #     for j in range(4):
-        #         ax = axes[i, j]
-        #         dim1 = 2 * (i * 4 + j)
-        #         dim2 = dim1 + 1
-
-        #         ax.scatter(
-        #             projections_tsne[labels == 0, dim1],
-        #             projections_tsne[labels == 0, dim2],
-        #             label="camera_1",
-        #             alpha=0.1,
-        #         )
-        #         ax.scatter(
-        #             projections_tsne[labels == 1, dim1],
-        #             projections_tsne[labels == 1, dim2],
-        #             label="camera_2",
-        #             alpha=0.1,
-        #         )
-        #         ax.scatter(
-        #             projections_tsne[labels == 2, dim1],
-        #             projections_tsne[labels == 2, dim2],
-        #             label="camera_3",
-        #             alpha=0.1,
-        #         )
-        #         ax.scatter(
-        #             projections_tsne[labels == 3, dim1],
-        #             projections_tsne[labels == 3, dim2],
-        #             label="camera_4",
-        #             alpha=0.1,
-        #         )
-        #         ax.set_title(f"Dimensions {dim1} and {dim2}")
-        #         ax.legend()
-
-        # plt.tight_layout()
-        # plt.show()
+    if args.plot == "embedding":
+        # plot all dimensions
+        fig, axes = plt.subplots(4, 4, figsize=(20, 20))
+        for i in range(4):
+            for j in range(4):
+                ax = axes[i, j]
+                dim1 = 2 * (i * 4 + j)
+                dim2 = dim1 + 1
+                ax.scatter(
+                    projections_tsne[labels == 0, dim1],
+                    projections_tsne[labels == 0, dim2],
+                    label="camera_1",
+                    alpha=0.1,
+                )
+                ax.scatter(
+                    projections_tsne[labels == 1, dim1],
+                    projections_tsne[labels == 1, dim2],
+                    label="camera_2",
+                    alpha=0.1,
+                )
+                ax.scatter(
+                    projections_tsne[labels == 2, dim1],
+                    projections_tsne[labels == 2, dim2],
+                    label="camera_3",
+                    alpha=0.1,
+                )
+                ax.scatter(
+                    projections_tsne[labels == 3, dim1],
+                    projections_tsne[labels == 3, dim2],
+                    label="camera_4",
+                    alpha=0.1,
+                )
+                ax.set_title(f"Dimensions {dim1} and {dim2}")
+                ax.legend()
+        plt.tight_layout()
+        plt.show()
 
     elif args.plot == "points":
         plt.figure(figsize=(10, 8))
