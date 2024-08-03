@@ -228,26 +228,26 @@ if __name__ == "__main__":
                 dim1 = 2 * (i * 4 + j)
                 dim2 = dim1 + 1
                 ax.scatter(
-                    projections_tsne[labels == 0, dim1],
-                    projections_tsne[labels == 0, dim2],
+                    projections_all[labels == 0, dim1],
+                    projections_all[labels == 0, dim2],
                     label="camera_1",
                     alpha=0.1,
                 )
                 ax.scatter(
-                    projections_tsne[labels == 1, dim1],
-                    projections_tsne[labels == 1, dim2],
+                    projections_all[labels == 1, dim1],
+                    projections_all[labels == 1, dim2],
                     label="camera_2",
                     alpha=0.1,
                 )
                 ax.scatter(
-                    projections_tsne[labels == 2, dim1],
-                    projections_tsne[labels == 2, dim2],
+                    projections_all[labels == 2, dim1],
+                    projections_all[labels == 2, dim2],
                     label="camera_3",
                     alpha=0.1,
                 )
                 ax.scatter(
-                    projections_tsne[labels == 3, dim1],
-                    projections_tsne[labels == 3, dim2],
+                    projections_all[labels == 3, dim1],
+                    projections_all[labels == 3, dim2],
                     label="camera_4",
                     alpha=0.1,
                 )
