@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # create model
     net = models.resnet18()
     model = SelfSupervisedLearner.load_from_checkpoint(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_134_decoder_for_132/checkpoints/epoch=99-step=32200.ckpt",
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_142_decoder_for_142/checkpoints/epoch=99-step=47200.ckpt",
         net=net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
@@ -81,9 +81,7 @@ if __name__ == "__main__":
 
     denormalize = T.Compose(
         [
-            T.Normalize(
-                mean=[0.0, 0.0, 0.0], std=[1 / 0.229, 1 / 0.224, 1 / 0.225]
-            ),
+            T.Normalize(mean=[0.0, 0.0, 0.0], std=[1 / 0.229, 1 / 0.224, 1 / 0.225]),
             T.Normalize(mean=[-0.485, -0.456, -0.406], std=[1.0, 1.0, 1.0]),
         ]
     )

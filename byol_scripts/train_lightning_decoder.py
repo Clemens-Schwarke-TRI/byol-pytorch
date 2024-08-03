@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     # load encoder
     checkpoint = torch.load(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_138_new_dataset_ccm_v1/checkpoints/epoch=91-step=32476.ckpt"
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_141_ccmt/checkpoints/epoch=99-step=66200.ckpt"
     )
     encoder_weights = {
         k.replace("learner.online_encoder.", ""): v
