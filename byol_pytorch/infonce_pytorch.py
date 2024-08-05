@@ -10,6 +10,8 @@ from torchvision import transforms as T
 
 from info_nce import InfoNCE as InfoNCELoss
 
+from .networks import MLP
+
 
 def flatten(t):
     return t.reshape(t.shape[0], -1)
@@ -52,19 +54,6 @@ class RandomApply(nn.Module):
         if random.random() > self.p:
             return x
         return self.fn(x)
-
-
-# MLP class for projector and predictor
-def MLP(dim, projection_size, hidden_size):
-    return nn.Sequential(
-        nn.Linear(dim, hidden_size),
-        nn.BatchNorm1d(hidden_size),
-        nn.ReLU(),
-        nn.Linear(hidden_size, hidden_size),
-        nn.BatchNorm1d(hidden_size),
-        nn.ReLU(),
-        nn.Linear(hidden_size, projection_size),
-    )
 
 
 # a wrapper class for the base neural network

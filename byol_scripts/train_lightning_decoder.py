@@ -9,11 +9,13 @@ from byol_pytorch import (
     InfoNCE,
     Decoder,
     ImageDataset,
+    CNN,
 )
 import pytorch_lightning as pl
 
-# test model, a resnet 50
-resnet = models.resnet18()
+# test model
+# net = models.resnet18()
+net = CNN()
 
 # arguments
 parser = argparse.ArgumentParser(description="decoder_lightning")
@@ -63,7 +65,7 @@ if __name__ == "__main__":
     )
 
     model = SelfSupervisedLearner(
-        resnet,
+        net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
         projection_size=32,
@@ -72,7 +74,7 @@ if __name__ == "__main__":
 
     # load encoder
     checkpoint = torch.load(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_141_ccmt/checkpoints/epoch=99-step=66200.ckpt"
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_147_small_cnn_ccmt/checkpoints/epoch=99-step=66200.ckpt"
     )
     encoder_weights = {
         k.replace("learner.online_encoder.", ""): v

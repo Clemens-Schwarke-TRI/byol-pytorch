@@ -4,12 +4,15 @@ import multiprocessing
 import torch
 from torchvision import models
 from torch.utils.data import DataLoader
+import torch.nn as nn
 
-from byol_pytorch import InfoNCE, ImagePoseDataset
+from byol_pytorch import InfoNCE, ImagePoseDataset, CNN
 import pytorch_lightning as pl
 
-# test model, a resnet 18
-resnet = models.resnet18(models.ResNet18_Weights.DEFAULT)
+
+# test model
+# net = models.resnet18(models.ResNet18_Weights.DEFAULT)
+net = CNN()
 
 # arguments
 parser = argparse.ArgumentParser(description="infonce_lightning")
@@ -57,7 +60,7 @@ if __name__ == "__main__":
     )
 
     model = SelfSupervisedLearner(
-        resnet,
+        net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
         projection_size=32,

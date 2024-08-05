@@ -13,7 +13,7 @@ from torch import nn
 from torchvision import transforms as T
 from torchvision import models
 
-from byol_pytorch import InfoNCE, TwoImagesLabelledDataset
+from byol_pytorch import InfoNCE, TwoImagesLabelledDataset, CNN
 
 # arguments
 parser = argparse.ArgumentParser(description="plot_info_nce")
@@ -86,9 +86,10 @@ if __name__ == "__main__":
         )
 
         # create model
-        net = models.resnet18()
+        # net = models.resnet18()
+        net = CNN()
         model = SelfSupervisedLearner.load_from_checkpoint(
-            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_141_ccmt/checkpoints/epoch=99-step=66200.ckpt",
+            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_147/checkpoints/epoch=99-step=66200.ckpt",
             net=net,
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",
