@@ -30,27 +30,42 @@ class Decoder(nn.Module):
         super().__init__()
         self.encoder = encoder
         self.decoder = DecoderNet()
+        self.image_size = image_size
+        self.augment = None
 
         self.encoder.eval()
         for param in self.encoder.parameters():
             param.requires_grad = False
 
-        # default SimCLR augmentation
-        self.augment = torch.nn.Sequential(
-            RandomApply(T.ColorJitter(0.8, 0.8, 0.8, 0.2), p=0.1),
-            T.RandomGrayscale(p=0.1),
-            RandomApply(T.GaussianBlur((3, 3), (1.0, 2.0)), p=0.1),
-            T.RandomResizedCrop(size=(image_size, image_size), scale=(0.8, 1.0)),
-            T.Normalize(
-                mean=torch.tensor([0.485, 0.456, 0.406]),
-                std=torch.tensor([0.229, 0.224, 0.225]),
-            ),
-        )
-
         self.normalize = T.Normalize(
             mean=torch.tensor([0.485, 0.456, 0.406]),
             std=torch.tensor([0.229, 0.224, 0.225]),
         )
+        self.train()
+
+    def train(self, mode=True):
+        super().train(mode)
+        if mode:
+            self.augment = torch.nn.Sequential(
+                RandomApply(T.ColorJitter(0.8, 0.8, 0.8, 0.2), p=0.1),
+                T.RandomGrayscale(p=0.1),
+                RandomApply(T.GaussianBlur((3, 3), (1.0, 2.0)), p=0.1),
+                T.RandomResizedCrop(
+                    size=(self.image_size, self.image_size), scale=(0.8, 1.0)
+                ),
+                T.Normalize(
+                    mean=torch.tensor([0.485, 0.456, 0.406]),
+                    std=torch.tensor([0.229, 0.224, 0.225]),
+                ),
+            )
+            self.encoder.eval()
+        else:
+            self.augment = nn.Sequential(
+                T.Normalize(
+                    mean=torch.tensor([0.485, 0.456, 0.406]),
+                    std=torch.tensor([0.229, 0.224, 0.225]),
+                ),
+            )
 
     def forward(self, x):
         with torch.no_grad():

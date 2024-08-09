@@ -142,23 +142,10 @@ class InfoNCE(nn.Module):
     ):
         super().__init__()
         self.net = net
+        self.image_size = image_size
         self.loss = InfoNCELoss(negative_mode="paired")
         self.reg_lambda = reg_lambda
-
-        # default SimCLR augmentation
-        DEFAULT_AUG = torch.nn.Sequential(
-            RandomApply(T.ColorJitter(0.8, 0.8, 0.8, 0.2), p=0.1),
-            T.RandomGrayscale(p=0.1),
-            RandomApply(T.GaussianBlur((3, 3), (1.0, 2.0)), p=0.1),
-            T.RandomResizedCrop(size=(image_size, image_size), scale=(0.8, 1.0)),
-            T.Normalize(
-                mean=torch.tensor([0.485, 0.456, 0.406]),
-                std=torch.tensor([0.229, 0.224, 0.225]),
-            ),
-        )
-
-        self.augment = DEFAULT_AUG
-
+        self.augment = None
         self.online_encoder = NetWrapper(
             net,
             projection_size,
@@ -171,9 +158,33 @@ class InfoNCE(nn.Module):
         self.to(device)
 
         # send a mock image tensor to instantiate singleton parameters
+        self.train()
         self.forward(
             torch.randn(2, 3, 3, image_size, image_size, device=device),
         )
+
+    def train(self, mode=True):
+        super().train(mode)
+        if mode:
+            self.augment = torch.nn.Sequential(
+                RandomApply(T.ColorJitter(0.8, 0.8, 0.8, 0.2), p=0.1),
+                T.RandomGrayscale(p=0.1),
+                RandomApply(T.GaussianBlur((3, 3), (1.0, 2.0)), p=0.1),
+                T.RandomResizedCrop(
+                    size=(self.image_size, self.image_size), scale=(0.8, 1.0)
+                ),
+                T.Normalize(
+                    mean=torch.tensor([0.485, 0.456, 0.406]),
+                    std=torch.tensor([0.229, 0.224, 0.225]),
+                ),
+            )
+        else:
+            self.augment = nn.Sequential(
+                T.Normalize(
+                    mean=torch.tensor([0.485, 0.456, 0.406]),
+                    std=torch.tensor([0.229, 0.224, 0.225]),
+                ),
+            )
 
     def forward(self, images, return_embedding=False):
         assert not (

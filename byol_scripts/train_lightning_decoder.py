@@ -14,8 +14,8 @@ from byol_pytorch import (
 import pytorch_lightning as pl
 
 # test model
-# net = models.resnet18()
-net = CNN()
+net = models.resnet18()
+# net = CNN()
 
 # arguments
 parser = argparse.ArgumentParser(description="decoder_lightning")
@@ -53,15 +53,32 @@ class SelfSupervisedLearner(pl.LightningModule):
         self.log("loss", loss)
         return {"loss": loss}
 
+    def validation_step(self, images, _):
+        loss = self.forward(images)
+        self.log("val_loss", loss, sync_dist=True)
+        return {"val_loss": loss}
+
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=LR)
+
+    def on_validation_model_train(self):
+        super().on_validation_model_train()
 
 
 # main
 if __name__ == "__main__":
     ds = ImageDataset(args.image_folder, IMAGE_SIZE, "camera_2")
+    ds_train, ds_val = torch.utils.data.random_split(ds, [0.9, 0.1])
     train_loader = DataLoader(
-        ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=multiprocessing.cpu_count()
+        ds_train,
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        num_workers=multiprocessing.cpu_count(),
+    )
+    val_loader = DataLoader(
+        ds_val,
+        batch_size=BATCH_SIZE,
+        num_workers=multiprocessing.cpu_count(),
     )
 
     model = SelfSupervisedLearner(
@@ -74,7 +91,7 @@ if __name__ == "__main__":
 
     # load encoder
     checkpoint = torch.load(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_147_small_cnn_ccmt/checkpoints/epoch=99-step=66200.ckpt"
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_160_box_run/checkpoints/epoch=99-step=49400.ckpt"
     )
     encoder_weights = {
         k.replace("learner.online_encoder.", ""): v
@@ -88,4 +105,4 @@ if __name__ == "__main__":
         max_epochs=EPOCHS,
     )
 
-    trainer.fit(model, train_loader)
+    trainer.fit(model, train_loader, val_loader)

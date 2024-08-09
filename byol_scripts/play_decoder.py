@@ -62,21 +62,15 @@ if __name__ == "__main__":
     )
 
     # create model
-    # net = models.resnet18()
-    net = CNN()
+    net = models.resnet18()
+    # net = CNN()
     model = SelfSupervisedLearner.load_from_checkpoint(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_148_decoder_for_147/checkpoints/",
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_161_decoder_for_160/checkpoints/epoch=99-step=40500.ckpt",
         net=net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
         projection_size=32,
         projection_hidden_size=256,
-    )
-    model.learner.augment = nn.Sequential(
-        T.Normalize(
-            mean=torch.tensor([0.485, 0.456, 0.406]),
-            std=torch.tensor([0.229, 0.224, 0.225]),
-        ),
     )
     model.eval()
 

@@ -251,6 +251,7 @@ class ImagePoseDataset(Dataset):
         ratio_positives=0.7,
         threshold_positives=0.2,
         threshold_negatives=0.3,
+        data_multiplier=2,
         paths=None,
         combinations=None,
         transform=None,
@@ -261,6 +262,7 @@ class ImagePoseDataset(Dataset):
         self.ratio_positives = ratio_positives
         self.threshold_positives = threshold_positives
         self.threshold_negatives = threshold_negatives
+        self.data_multiplier = data_multiplier
         if paths is None:
             self.paths = {
                 "camera_1": [],
@@ -320,7 +322,7 @@ class ImagePoseDataset(Dataset):
         self.distances = (diff**2).sum(-1).sqrt()
 
     def __len__(self):
-        return self.length * 5
+        return self.length * self.data_multiplier
 
     def __getitem__(self, index):
         index = index % self.length
