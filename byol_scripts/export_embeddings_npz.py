@@ -86,19 +86,13 @@ if __name__ == "__main__":
     # create model
     net = models.resnet18()
     model = SelfSupervisedLearner.load_from_checkpoint(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_141_ccmt/checkpoints/epoch=99-step=66200.ckpt",
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_160_box_run/checkpoints/epoch=99-step=49400.ckpt",
         net=net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
         projection_size=32,
         projection_hidden_size=256,
         # map_location={"cuda:1": "cuda:0"},
-    )
-    model.learner.augment = nn.Sequential(
-        T.Normalize(
-            mean=torch.tensor([0.485, 0.456, 0.406]),
-            std=torch.tensor([0.229, 0.224, 0.225]),
-        ),
     )
     model.eval()
 
@@ -140,5 +134,13 @@ if __name__ == "__main__":
     }
     df = pd.DataFrame(data)
 
-    df.to_pickle(os.path.join(args.file_path, "latents.pkl"))
-    print(f"Saved dataframe to {args.file_path}")
+    path_parts = args.file_path.strip(os.sep).split(os.sep)
+    try:
+        data_index = path_parts.index("data")
+        filename_parts = path_parts[data_index + 1:]
+        filename = f"latent_{'_'.join(filename_parts)}.pkl"
+    except ValueError:
+        raise ValueError("The specified file path does not contain a 'data' folder.")
+
+    df.to_pickle(os.path.join(args.file_path, filename))
+    print(f"Saved dataframe to {os.path.join(args.file_path, filename)}")
