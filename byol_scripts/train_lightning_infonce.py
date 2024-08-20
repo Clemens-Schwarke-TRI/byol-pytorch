@@ -68,11 +68,11 @@ class SelfSupervisedLearner(pl.LightningModule):
 
 # main
 if __name__ == "__main__":
-    ds = ImagePoseDataset(args.train_folder, IMAGE_SIZE, ratio_positives=1.0)
+    ds = ImagePoseDataset(args.train_folder, IMAGE_SIZE)
     train_loader = DataLoader(
         ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=multiprocessing.cpu_count()
     )
-    ds_val = ImagePoseDataset(args.val_folder, IMAGE_SIZE, ratio_positives=1.0)
+    ds_val = ImagePoseDataset(args.val_folder, IMAGE_SIZE)
     val_loader = DataLoader(
         ds_val, batch_size=BATCH_SIZE, num_workers=multiprocessing.cpu_count()
     )

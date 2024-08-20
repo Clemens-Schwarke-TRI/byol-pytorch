@@ -138,7 +138,7 @@ class InfoNCE(nn.Module):
         hidden_layer,
         projection_size,
         projection_hidden_size,
-        reg_lambda=1e-4,
+        reg_lambda=1e-3,
     ):
         super().__init__()
         self.net = net

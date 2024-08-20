@@ -248,7 +248,7 @@ class ImagePoseDataset(Dataset):
         folder,
         image_size,
         num_negatives=2,
-        ratio_positives=0.7,
+        ratio_positives=1.0,
         threshold_positives=0.2,
         threshold_negatives=0.3,
         data_multiplier=2,
@@ -340,6 +340,7 @@ class ImagePoseDataset(Dataset):
             # same frame different camera
             path_p = self.paths[camera_b][image_index]
         else:
+            raise ValueError("not useful for object data!") 
             # different frame same camera
             dist = 999 * self.threshold_positives
             while dist > self.threshold_positives:
