@@ -140,7 +140,7 @@ if __name__ == "__main__":
         filename_parts = path_parts[data_index + 1:]
         filename = f"latent_{'_'.join(filename_parts)}.pkl"
     except ValueError:
-        raise ValueError("The specified file path does not contain a 'data' folder.")
+        filename = "latent.pkl"
 
     df.to_pickle(os.path.join(args.file_path, filename))
     print(f"Saved dataframe to {os.path.join(args.file_path, filename)}")
