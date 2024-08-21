@@ -21,10 +21,16 @@ net = models.resnet18()
 parser = argparse.ArgumentParser(description="decoder_lightning")
 
 parser.add_argument(
-    "--image_folder",
+    "--train_folder",
     type=str,
     required=True,
     help="path to your folder of images for self-supervised learning",
+)
+parser.add_argument(
+    "--val_folder",
+    type=str,
+    required=True,
+    help="path to your folder of images for validation",
 )
 
 args = parser.parse_args()
@@ -67,8 +73,8 @@ class SelfSupervisedLearner(pl.LightningModule):
 
 # main
 if __name__ == "__main__":
-    ds = ImageDataset(args.image_folder, IMAGE_SIZE, "camera_2")
-    ds_train, ds_val = torch.utils.data.random_split(ds, [0.9, 0.1])
+    ds_train = ImageDataset(args.train_folder, IMAGE_SIZE, "camera_2")
+    ds_val = ImageDataset(args.val_folder, IMAGE_SIZE, "camera_2")
     train_loader = DataLoader(
         ds_train,
         batch_size=BATCH_SIZE,
