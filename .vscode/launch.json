@@ -38,6 +38,19 @@
             ]
         },
         {
+            "name": "Train Encoder Decoder",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/byol_scripts/train_lightning_encoder_decoder.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_folder",
+                "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_poses_box_wo_3_log_4",
+                "--val_folder",
+                "/home/clemensschwarke/Desktop/data/datasets/dataset_paired_byol_poses_val_box_3_log_4",
+            ]
+        },
+        {
             "name": "Train BYOL",
             "type": "debugpy",
             "request": "launch",
@@ -111,14 +124,21 @@
             "console": "integratedTerminal",
             "args": [
                 "--file_path",
-                "/home/clemensschwarke/Desktop/data/0801_teleop_session_1/log_1/"
+                "/home/clemensschwarke/Desktop/data/0801_teleop_session_1/log_1/",
                 "--target_freq_ratio",
                 "2",
                 "--width",
-                "320"
+                "320",
                 "--height",
                 "240",
             ]
+        },
+        {
+            "name": "Decode Embeddings",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/byol_scripts/play_decoder_on_embeddings.py",
+            "console": "integratedTerminal",
         },
     ]
 }

@@ -222,6 +222,38 @@ class ImageDataset(Dataset):
         image = self.transform(Image.open(self.paths[index]))
         return image
 
+class ImageDatasetEncDec(Dataset):
+    def __init__(self, folder, image_size, data_percentage):
+        super().__init__()
+        self.data_percentage = data_percentage
+        self.folder = folder
+        self.transform = transforms.Compose(
+            [
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),
+            ]
+        )
+        self.paths = {
+                "camera_2": [],
+                "camera_4": [],
+            }
+        for camera in self.paths.keys():
+            sorted_paths = sorted(Path(folder, camera).glob("*"))
+            for path in sorted_paths:
+                _, ext = os.path.splitext(path)
+                if ext.lower() in IMAGE_EXTS:
+                    self.paths[camera].append(path)
+            print(f"{len(self.paths[camera])} images found for {camera}")
+        self.min_length = min(len(paths) for paths in self.paths.values())
+
+    def __len__(self):
+        return int(self.min_length * self.data_percentage)
+
+    def __getitem__(self, index):
+        x = self.transform(Image.open(self.paths["camera_4"][index]))
+        y = self.transform(Image.open(self.paths["camera_2"][index]))
+
+        return torch.stack([x, y], dim=0)
 
 class TwoImageDataset(ImageDataset):
     def __init__(self, folder, image_size, camera, camera2):
