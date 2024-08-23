@@ -223,10 +223,12 @@ class ImageDataset(Dataset):
         return image
 
 class ImageDatasetEncDec(Dataset):
-    def __init__(self, folder, image_size, data_percentage):
+    def __init__(self, folder, image_size, camera_x, camera_y, data_percentage=1.0):
         super().__init__()
-        self.data_percentage = data_percentage
         self.folder = folder
+        self.data_percentage = data_percentage
+        self.camera_x = camera_x
+        self.camera_y = camera_y
         self.transform = transforms.Compose(
             [
                 transforms.Resize((image_size, image_size)),
@@ -234,8 +236,8 @@ class ImageDatasetEncDec(Dataset):
             ]
         )
         self.paths = {
-                "camera_2": [],
-                "camera_4": [],
+                camera_x: [],
+                camera_y: [],
             }
         for camera in self.paths.keys():
             sorted_paths = sorted(Path(folder, camera).glob("*"))
@@ -250,8 +252,8 @@ class ImageDatasetEncDec(Dataset):
         return int(self.min_length * self.data_percentage)
 
     def __getitem__(self, index):
-        x = self.transform(Image.open(self.paths["camera_4"][index]))
-        y = self.transform(Image.open(self.paths["camera_2"][index]))
+        x = self.transform(Image.open(self.paths[self.camera_x][index]))
+        y = self.transform(Image.open(self.paths[self.camera_y][index]))
 
         return torch.stack([x, y], dim=0)
 

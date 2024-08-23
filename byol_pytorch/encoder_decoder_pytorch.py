@@ -27,12 +27,24 @@ class RandomApply(nn.Module):
 
 
 class EncoderDecoder(nn.Module):
-    def __init__(self, encoder, image_size):
+    def __init__(self, encoder, image_size, train_encoder, train_decoder):
         super().__init__()
         self.encoder = encoder
         self.decoder = DecoderNet()
         self.image_size = image_size
+        self.train_encoder = train_encoder
+        self.train_decoder = train_decoder
         self.augment = None
+
+        if not self.train_encoder:
+            self.encoder.eval()
+            for param in self.encoder.parameters():
+                param.requires_grad = False
+        if not self.train_decoder:
+            self.decoder.eval()
+            for param in self.decoder.parameters():
+                param.requires_grad = False
+
         self.normalize = T.Normalize(
             mean=torch.tensor([0.485, 0.456, 0.406]),
             std=torch.tensor([0.229, 0.224, 0.225]),
@@ -54,6 +66,10 @@ class EncoderDecoder(nn.Module):
                     std=torch.tensor([0.229, 0.224, 0.225]),
                 ),
             )
+            if not self.train_encoder:
+                self.encoder.eval()
+            if not self.train_decoder:
+                self.decoder.eval()
         else:
             self.augment = nn.Sequential(
                 T.Normalize(
@@ -63,9 +79,24 @@ class EncoderDecoder(nn.Module):
             )
 
     def compute_loss(self, images):
-        x = images[:,0]
-        y = images[:,1]
+        x = images[:, 0]
+        y = images[:, 1]
         x = self.augment(x)
         x = self.encoder(x.contiguous())
         x = self.decoder(x)
         return F.mse_loss(x, self.normalize(y))
+
+    def get_encoding(self, x):
+        x_shape = x.shape
+        x = x.view(-1, 3, self.image_size, self.image_size)
+        x = self.augment(x)
+        x = self.encoder(x.contiguous())
+        return x.view(x_shape[0], x_shape[1], 32)
+
+    def get_translation(self, x):
+        x_shape = x.shape
+        x = x.view(-1, 3, self.image_size, self.image_size)
+        x = self.augment(x)
+        x = self.encoder(x.contiguous())
+        x = self.decoder(x)
+        return x.view(x_shape)

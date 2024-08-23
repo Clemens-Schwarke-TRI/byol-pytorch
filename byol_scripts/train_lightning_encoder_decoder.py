@@ -16,11 +16,16 @@ from byol_pytorch import (
 import pytorch_lightning as pl
 
 # test model
-net = CNN() #models.resnet18(models.ResNet18_Weights.DEFAULT)
+net = models.resnet18(models.ResNet18_Weights.DEFAULT)
 
 # arguments
 parser = argparse.ArgumentParser(description="encoder_decoder_lightning")
 
+parser.add_argument(
+    "--train_encoder_only",
+    action="store_true",
+    help="train only the encoder",
+)
 parser.add_argument(
     "--train_folder",
     type=str,
@@ -46,11 +51,16 @@ IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
 
 # pytorch lightning module
 class SelfSupervisedLearner(pl.LightningModule):
-    def __init__(self, net, **kwargs):
+    def __init__(self, net, train_encoder_only, **kwargs):
         super().__init__()
         model = InfoNCE(net, **kwargs)
         encoder = model.online_encoder
-        self.learner = EncoderDecoder(encoder, IMAGE_SIZE)
+        self.learner = EncoderDecoder(
+            encoder,
+            IMAGE_SIZE,
+            train_encoder=True,
+            train_decoder=not train_encoder_only,
+        )
 
     def forward(self, images):
         return self.learner.compute_loss(images)
@@ -74,9 +84,21 @@ class SelfSupervisedLearner(pl.LightningModule):
 
 # main
 if __name__ == "__main__":
-    ds_train = ImageDatasetEncDec(args.train_folder, IMAGE_SIZE, data_percentage=1.0)
-    ds_val = ImageDatasetEncDec(args.val_folder, IMAGE_SIZE, data_percentage=1.0)
-    
+    ds_train = ImageDatasetEncDec(
+        args.train_folder,
+        IMAGE_SIZE,
+        data_percentage=1.0,
+        camera_x="camera_4",
+        camera_y="camera_2",
+    )
+    ds_val = ImageDatasetEncDec(
+        args.val_folder,
+        IMAGE_SIZE,
+        data_percentage=1.0,
+        camera_x="camera_4",
+        camera_y="camera_2",
+    )
+
     train_loader = DataLoader(
         ds_train,
         batch_size=BATCH_SIZE,
@@ -91,11 +113,24 @@ if __name__ == "__main__":
 
     model = SelfSupervisedLearner(
         net,
+        train_encoder_only=args.train_encoder_only,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
         projection_size=32,
         projection_hidden_size=256,
     )
+
+    if args.train_encoder_only:
+        # load decoder
+        checkpoint = torch.load(
+            "lightning_logs/version_186_ae_cam_2_to_cam_2/checkpoints/epoch=49-step=550.ckpt"
+        )
+        decoder_weights = {
+            k.replace("learner.online_encoder.", ""): v
+            for k, v in checkpoint["state_dict"].items()
+            if k.startswith("learner.decoder.")
+        }
+        model.learner.decoder.load_state_dict(decoder_weights)
 
     trainer = pl.Trainer(
         devices=[0, 1, 2, 3],

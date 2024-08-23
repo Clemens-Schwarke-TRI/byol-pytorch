@@ -87,7 +87,7 @@
             "name": "Play Decoder",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/byol_scripts/play_decoder.py",
+            "program": "${workspaceFolder}/byol_scripts/play_encoder_decoder_show_translation.py",
             "console": "integratedTerminal",
             "args": [
                 "--image_folder",

@@ -13,7 +13,7 @@ from torch import nn
 from torchvision import transforms as T
 from torchvision import models
 
-from byol_pytorch import InfoNCE, Decoder, TwoImageDataset, CNN
+from byol_pytorch import InfoNCE, EncoderDecoder, TwoImageDataset, CNN
 
 # arguments
 parser = argparse.ArgumentParser(description="plot_decoder")
@@ -37,7 +37,9 @@ class SelfSupervisedLearner(pl.LightningModule):
         super().__init__()
         model = InfoNCE(net, **kwargs)
         encoder = model.online_encoder
-        self.learner = Decoder(encoder, IMAGE_SIZE)
+        self.learner = EncoderDecoder(
+            encoder, IMAGE_SIZE, train_encoder=False, train_decoder=False
+        )
 
     def forward(self, images):
         return self.learner.compute_loss(images)
@@ -65,7 +67,7 @@ if __name__ == "__main__":
     net = models.resnet18()
     # net = CNN()
     model = SelfSupervisedLearner.load_from_checkpoint(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_161_decoder_for_160/checkpoints/epoch=99-step=40500.ckpt",
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_188_encoder_for_186/checkpoints/epoch=49-step=550.ckpt",
         net=net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
@@ -84,7 +86,7 @@ if __name__ == "__main__":
     with torch.no_grad():
         fig, ax = plt.subplots(1, 3, figsize=(30, 10))
         for i, (image, image2) in enumerate(dataloader):
-            output_image = model.learner(image.to(model.device))
+            output_image = model.learner.get_translation(image.to(model.device))
             output_image = denormalize(output_image[0])
 
             ax[0].clear()

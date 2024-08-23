@@ -7,8 +7,8 @@ from torch.utils.data import DataLoader
 
 from byol_pytorch import (
     InfoNCE,
-    Decoder,
-    ImageDataset,
+    EncoderDecoder,
+    ImageDatasetEncDec,
     CNN,
 )
 import pytorch_lightning as pl
@@ -37,7 +37,7 @@ args = parser.parse_args()
 
 # constants
 BATCH_SIZE = 256
-EPOCHS = 100
+EPOCHS = 50
 LR = 1e-3
 IMAGE_SIZE = 256
 IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
@@ -49,7 +49,9 @@ class SelfSupervisedLearner(pl.LightningModule):
         super().__init__()
         model = InfoNCE(net, **kwargs)
         encoder = model.online_encoder
-        self.learner = Decoder(encoder, IMAGE_SIZE)
+        self.learner = EncoderDecoder(
+            encoder, IMAGE_SIZE, train_encoder=False, train_decoder=True
+        )
 
     def forward(self, images):
         return self.learner.compute_loss(images)
@@ -73,8 +75,8 @@ class SelfSupervisedLearner(pl.LightningModule):
 
 # main
 if __name__ == "__main__":
-    ds_train = ImageDataset(args.train_folder, IMAGE_SIZE, "camera_2")
-    ds_val = ImageDataset(args.val_folder, IMAGE_SIZE, "camera_2")
+    ds_train = ImageDatasetEncDec(args.train_folder, IMAGE_SIZE, "camera_4", "camera_2")
+    ds_val = ImageDatasetEncDec(args.val_folder, IMAGE_SIZE, "camera_4", "camera_2")
     train_loader = DataLoader(
         ds_train,
         batch_size=BATCH_SIZE,
@@ -97,7 +99,7 @@ if __name__ == "__main__":
 
     # load encoder
     checkpoint = torch.load(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_160_box_run/checkpoints/epoch=99-step=49400.ckpt"
+        "lightning_logs/version_165_only_cam_2_4/checkpoints/epoch=99-step=49400.ckpt"
     )
     encoder_weights = {
         k.replace("learner.online_encoder.", ""): v
@@ -107,8 +109,12 @@ if __name__ == "__main__":
     model.learner.encoder.load_state_dict(encoder_weights)
 
     trainer = pl.Trainer(
-        devices=1,
+        devices=[0, 1, 2, 3],
+        log_every_n_steps=1,
+        callbacks=[pl.callbacks.ModelCheckpoint(every_n_epochs=5, save_top_k=1)],
         max_epochs=EPOCHS,
+        strategy="ddp_find_unused_parameters_true",
+        sync_batchnorm=True,
     )
 
     trainer.fit(model, train_loader, val_loader)
