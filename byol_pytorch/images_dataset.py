@@ -222,6 +222,7 @@ class ImageDataset(Dataset):
         image = self.transform(Image.open(self.paths[index]))
         return image
 
+
 class ImageDatasetEncDec(Dataset):
     def __init__(self, folder, image_size, camera_x, camera_y, data_percentage=1.0):
         super().__init__()
@@ -236,9 +237,9 @@ class ImageDatasetEncDec(Dataset):
             ]
         )
         self.paths = {
-                camera_x: [],
-                camera_y: [],
-            }
+            camera_x: [],
+            camera_y: [],
+        }
         for camera in self.paths.keys():
             sorted_paths = sorted(Path(folder, camera).glob("*"))
             for path in sorted_paths:
@@ -256,6 +257,7 @@ class ImageDatasetEncDec(Dataset):
         y = self.transform(Image.open(self.paths[self.camera_y][index]))
 
         return torch.stack([x, y], dim=0)
+
 
 class TwoImageDataset(ImageDataset):
     def __init__(self, folder, image_size, camera, camera2):
@@ -283,9 +285,9 @@ class ImagePoseDataset(Dataset):
         image_size,
         num_negatives=2,
         ratio_positives=1.0,
-        threshold_positives=0.2,
-        threshold_negatives=0.3,
-        data_multiplier=2,
+        threshold_positives=0.0,
+        threshold_negatives=0.0,
+        data_multiplier=1,
         paths=None,
         combinations=None,
         transform=None,
@@ -308,18 +310,18 @@ class ImagePoseDataset(Dataset):
             self.paths = paths
         if combinations is None:
             self.combinations = [
-                ("camera_1", "camera_2"),
-                ("camera_1", "camera_3"),
-                ("camera_1", "camera_4"),
-                ("camera_2", "camera_1"),
-                ("camera_2", "camera_3"),
+                # ("camera_1", "camera_2"),
+                # ("camera_1", "camera_3"),
+                # ("camera_1", "camera_4"),
+                # ("camera_2", "camera_1"),
+                # ("camera_2", "camera_3"),
                 ("camera_2", "camera_4"),
-                ("camera_3", "camera_1"),
-                ("camera_3", "camera_2"),
-                ("camera_3", "camera_4"),
-                ("camera_4", "camera_1"),
+                # ("camera_3", "camera_1"),
+                # ("camera_3", "camera_2"),
+                # ("camera_3", "camera_4"),
+                # ("camera_4", "camera_1"),
                 ("camera_4", "camera_2"),
-                ("camera_4", "camera_3"),
+                # ("camera_4", "camera_3"),
             ]
         else:
             self.combinations = combinations
@@ -374,7 +376,7 @@ class ImagePoseDataset(Dataset):
             # same frame different camera
             path_p = self.paths[camera_b][image_index]
         else:
-            raise ValueError("not useful for object data!") 
+            raise ValueError("not useful for object data!")
             # different frame same camera
             dist = 999 * self.threshold_positives
             while dist > self.threshold_positives:
@@ -386,7 +388,7 @@ class ImagePoseDataset(Dataset):
         # negative
         images_n = []
         for i in range(self.num_negatives):
-            dist = 0
+            dist = -1
             while dist < self.threshold_negatives:
                 random_index = torch.randint(0, self.min_length, (1,)).item()
                 dist = self.distances[image_index, random_index]

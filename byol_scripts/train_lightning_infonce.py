@@ -34,7 +34,7 @@ args = parser.parse_args()
 
 # constants
 BATCH_SIZE = 128
-EPOCHS = 100
+EPOCHS = 20
 LR = 3e-4
 IMAGE_SIZE = 256
 IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
@@ -87,6 +87,7 @@ if __name__ == "__main__":
 
     trainer = pl.Trainer(
         devices=[0, 1, 2, 3],
+        log_every_n_steps=1,
         callbacks=[pl.callbacks.ModelCheckpoint(every_n_epochs=1, save_top_k=1)],
         max_epochs=EPOCHS,
         strategy="ddp_find_unused_parameters_true",
