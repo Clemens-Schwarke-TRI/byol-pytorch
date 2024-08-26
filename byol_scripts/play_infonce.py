@@ -26,7 +26,15 @@ parser.add_argument(
 parser.add_argument(
     "--plot",
     type=str,
-    choices=["cameras", "embedding", "points", "distance", "live_plot", "live_plot_2"],
+    choices=[
+        "cameras",
+        "split_logs",
+        "embedding",
+        "points",
+        "distance",
+        "live_plot",
+        "live_plot_2",
+    ],
     default="cameras",
     help="plot cameras or points",
 )
@@ -89,7 +97,7 @@ if __name__ == "__main__":
         net = models.resnet18()
         # net = CNN()
         model = SelfSupervisedLearner.load_from_checkpoint(
-            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_151_cmt2/checkpoints/epoch=99-step=91600.ckpt",
+            "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_201_box_large/checkpoints/epoch=19-step=1560.ckpt",
             net=net,
             image_size=IMAGE_SIZE,
             hidden_layer="avgpool",
@@ -131,29 +139,29 @@ if __name__ == "__main__":
                 hook.remove()
 
             # convert to numpy
-            projections_camera_1 = torch.stack(projections["camera_1"]).cpu().numpy()
+            # projections_camera_1 = torch.stack(projections["camera_1"]).cpu().numpy()
             projections_camera_2 = torch.stack(projections["camera_2"]).cpu().numpy()
-            projections_camera_3 = torch.stack(projections["camera_3"]).cpu().numpy()
+            # projections_camera_3 = torch.stack(projections["camera_3"]).cpu().numpy()
             projections_camera_4 = torch.stack(projections["camera_4"]).cpu().numpy()
 
             # save projections
-            np.save("projections/projections_camera_1.npy", projections_camera_1)
+            # np.save("projections/projections_camera_1.npy", projections_camera_1)
             np.save("projections/projections_camera_2.npy", projections_camera_2)
-            np.save("projections/projections_camera_3.npy", projections_camera_3)
+            # np.save("projections/projections_camera_3.npy", projections_camera_3)
             np.save("projections/projections_camera_4.npy", projections_camera_4)
 
     if args.use_saved_projections or args.use_saved_tsne:
         # load saved projections
-        projections_camera_1 = np.load("projections/projections_camera_1.npy")
+        # projections_camera_1 = np.load("projections/projections_camera_1.npy")
         projections_camera_2 = np.load("projections/projections_camera_2.npy")
-        projections_camera_3 = np.load("projections/projections_camera_3.npy")
+        # projections_camera_3 = np.load("projections/projections_camera_3.npy")
         projections_camera_4 = np.load("projections/projections_camera_4.npy")
 
     projections_all = np.vstack(
         [
-            projections_camera_1,
+            # projections_camera_1,
             projections_camera_2,
-            projections_camera_3,
+            # projections_camera_3,
             projections_camera_4,
         ]
     )
@@ -164,9 +172,9 @@ if __name__ == "__main__":
 
     # t-SNE visualization
     labels = np.array(
-        [0] * len(projections_camera_1)
-        + [1] * len(projections_camera_2)
-        + [2] * len(projections_camera_3)
+        # [0] * len(projections_camera_1)
+        [1] * len(projections_camera_2)
+        # + [2] * len(projections_camera_3)
         + [3] * len(projections_camera_4)
     )
 
@@ -184,30 +192,127 @@ if __name__ == "__main__":
 
     if args.plot == "cameras":
         plt.figure(figsize=(10, 8))
-        plt.scatter(
-            projections_tsne[labels == 0, 0],
-            projections_tsne[labels == 0, 1],
-            label="camera_1",
-            alpha=0.1,
-        )
+        # plt.scatter(
+        #     projections_tsne[labels == 0, 0],
+        #     projections_tsne[labels == 0, 1],
+        #     label="camera_1",
+        #     alpha=0.1,
+        # )
         plt.scatter(
             projections_tsne[labels == 1, 0],
             projections_tsne[labels == 1, 1],
             label="camera_2",
             alpha=0.1,
         )
-        plt.scatter(
-            projections_tsne[labels == 2, 0],
-            projections_tsne[labels == 2, 1],
-            label="camera_3",
-            alpha=0.1,
-        )
+        # plt.scatter(
+        #     projections_tsne[labels == 2, 0],
+        #     projections_tsne[labels == 2, 1],
+        #     label="camera_3",
+        #     alpha=0.1,
+        # )
         plt.scatter(
             projections_tsne[labels == 3, 0],
             projections_tsne[labels == 3, 1],
             label="camera_4",
             alpha=0.1,
         )
+        plt.legend()
+        plt.title("t-SNE Visualization of 256-Dimensional Projections")
+        plt.xlabel("t-SNE Component 1")
+        plt.ylabel("t-SNE Component 2")
+        plt.show()
+
+    if args.plot == "split_logs":
+        # List of image counts
+        image_counts = [
+            1162,
+            1054,
+            955,
+            367,
+            658,
+            449,
+            1659,
+            684,
+            428,
+            300,
+            649,
+            465,
+            577,
+            625,
+            498,
+            504,
+            491,
+            482,
+            441,
+            1417,
+            713,
+            971,
+            2214,
+            619,
+            483,
+            633,
+            301,
+        ]
+
+        # List of labels corresponding to the image counts
+        labels = [
+            "0804_1_log_5",
+            "0804_1_log_6",
+            "0804_1_log_7",
+            "0804_1_log_8",
+            "0804_2_log_1",
+            "0804_2_log_2",
+            "0804_2_log_3",
+            "0804_2_log_4",
+            "0804_2_log_5",
+            "0804_2_log_6",
+            "0804_2_log_7",
+            "0804_2_log_8",
+            "0804_3_log_1",
+            "0804_3_log_2",
+            "0804_3_log_3",
+            "0823_1_log_1",
+            "0823_1_log_2",
+            "0823_1_log_3",
+            "0823_1_log_4",
+            "0823_1_log_5",
+            "0823_1_log_6",
+            "0823_1_log_7",
+            "0823_1_log_8",
+            "0823_1_log_9",
+            "0823_1_log_10",
+            "0823_1_log_11",
+            "0823_1_log_12",
+        ]
+
+        # Group the image counts and labels by their prefixes
+        grouped_data = {}
+        for count, label in zip(image_counts, labels):
+            # prefix = label.split("_")[0] + "_" + label.split("_")[1]
+            prefix = label.split("_")[0]
+            if prefix not in grouped_data:
+                grouped_data[prefix] = count
+            else:
+                grouped_data[prefix] += count
+
+        # Initialize start variable
+        start = 0
+
+        # Create the plot
+        plt.figure(figsize=(10, 8))
+
+        # Loop through the grouped data and plot the scatter plots
+        for prefix, count in grouped_data.items():
+            end = start + count
+            plt.scatter(
+                projections_tsne[start:end, 0],
+                projections_tsne[start:end, 1],
+                label=prefix,
+                alpha=0.5,
+            )
+            start = end
+
+        # Add legend and labels
         plt.legend()
         plt.title("t-SNE Visualization of 256-Dimensional Projections")
         plt.xlabel("t-SNE Component 1")
