@@ -287,6 +287,7 @@ class ImagePoseDataset(Dataset):
         ratio_positives=1.0,
         threshold_positives=0.0,
         threshold_negatives=0.0,
+        data_percentage=1.0,
         data_multiplier=1,
         paths=None,
         combinations=None,
@@ -298,6 +299,7 @@ class ImagePoseDataset(Dataset):
         self.ratio_positives = ratio_positives
         self.threshold_positives = threshold_positives
         self.threshold_negatives = threshold_negatives
+        self.data_percentage = data_percentage
         self.data_multiplier = data_multiplier
         if paths is None:
             self.paths = {
@@ -344,7 +346,9 @@ class ImagePoseDataset(Dataset):
                 if ext.lower() in IMAGE_EXTS:
                     self.paths[camera].append(path)
             print(f"{len(self.paths[camera])} images found for {camera}")
-        self.min_length = min(len(paths) for paths in self.paths.values())
+        self.min_length = int(
+            min(len(paths) for paths in self.paths.values()) * self.data_percentage
+        )
         self.length = self.min_length * len(self.combinations)
         print(f"Number of samples: {self.length}")
 
