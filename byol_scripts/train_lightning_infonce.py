@@ -29,12 +29,18 @@ parser.add_argument(
     required=True,
     help="path to your folder of images for validation",
 )
+parser.add_argument(
+    "--val_folder_2",
+    type=str,
+    required=True,
+    help="path to your folder of images for validation",
+)
 
 args = parser.parse_args()
 
 # constants
 BATCH_SIZE = 128
-EPOCHS = 20
+EPOCHS = 40
 LR = 3e-4
 IMAGE_SIZE = 256
 IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
@@ -54,9 +60,9 @@ class SelfSupervisedLearner(pl.LightningModule):
         self.log("loss", loss)
         return {"loss": loss}
 
-    def validation_step(self, images, _):
+    def validation_step(self, images, _, dataloader_idx=0):
         loss = self.forward(images)
-        self.log("val_loss", loss, sync_dist=True)
+        self.log(f"val_loss_{dataloader_idx}", loss, sync_dist=True)
         return {"val_loss": loss}
 
     def configure_optimizers(self):
@@ -68,13 +74,17 @@ class SelfSupervisedLearner(pl.LightningModule):
 
 # main
 if __name__ == "__main__":
-    ds = ImagePoseDataset(args.train_folder, IMAGE_SIZE)
+    ds = ImagePoseDataset(args.train_folder, IMAGE_SIZE, data_percentage=0.5)
     train_loader = DataLoader(
         ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=multiprocessing.cpu_count()
     )
     ds_val = ImagePoseDataset(args.val_folder, IMAGE_SIZE)
     val_loader = DataLoader(
         ds_val, batch_size=BATCH_SIZE, num_workers=multiprocessing.cpu_count()
+    )
+    ds_val2 = ImagePoseDataset(args.val_folder_2, IMAGE_SIZE)
+    val_loader2 = DataLoader(
+        ds_val2, batch_size=BATCH_SIZE, num_workers=multiprocessing.cpu_count()
     )
 
     model = SelfSupervisedLearner(
@@ -94,4 +104,6 @@ if __name__ == "__main__":
         sync_batchnorm=True,
     )
 
-    trainer.fit(model, train_loader, val_loader)
+    trainer.fit(
+        model, train_dataloaders=train_loader, val_dataloaders=[val_loader, val_loader2]
+    )

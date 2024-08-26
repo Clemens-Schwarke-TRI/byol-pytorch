@@ -167,9 +167,9 @@ class InfoNCE(nn.Module):
         super().train(mode)
         if mode:
             self.augment = torch.nn.Sequential(
-                RandomApply(T.ColorJitter(0.8, 0.8, 0.8, 0.2), p=0.3),
-                T.RandomGrayscale(p=0.2),
-                RandomApply(T.GaussianBlur((3, 3), (1.0, 2.0)), p=0.2),
+                RandomApply(T.ColorJitter(0.8, 0.8, 0.8, 0.2), p=0.1),
+                T.RandomGrayscale(p=0.1),
+                RandomApply(T.GaussianBlur((3, 3), (1.0, 2.0)), p=0.1),
                 T.RandomResizedCrop(
                     size=(self.image_size, self.image_size), scale=(0.8, 1.0)
                 ),
