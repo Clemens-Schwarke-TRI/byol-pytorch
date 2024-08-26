@@ -224,9 +224,18 @@ class ImageDataset(Dataset):
 
 
 class ImageDatasetEncDec(Dataset):
-    def __init__(self, folder, image_size, camera_x, camera_y, data_percentage=1.0):
+    def __init__(
+        self,
+        folder,
+        image_size,
+        camera_x,
+        camera_y,
+        data_multiplier=1,
+        data_percentage=1.0,
+    ):
         super().__init__()
         self.folder = folder
+        self.data_multiplier = data_multiplier
         self.data_percentage = data_percentage
         self.camera_x = camera_x
         self.camera_y = camera_y
@@ -247,12 +256,15 @@ class ImageDatasetEncDec(Dataset):
                 if ext.lower() in IMAGE_EXTS:
                     self.paths[camera].append(path)
             print(f"{len(self.paths[camera])} images found for {camera}")
-        self.min_length = min(len(paths) for paths in self.paths.values())
+        self.min_length = int(
+            min(len(paths) for paths in self.paths.values()) * self.data_percentage
+        )
 
     def __len__(self):
-        return int(self.min_length * self.data_percentage)
+        return self.min_length * self.data_multiplier
 
     def __getitem__(self, index):
+        index = index % self.min_length
         x = self.transform(Image.open(self.paths[self.camera_x][index]))
         y = self.transform(Image.open(self.paths[self.camera_y][index]))
 
