@@ -204,7 +204,7 @@ if __name__ == "__main__":
             alpha=0.1,
         )
         plt.legend()
-        plt.title("t-SNE Visualization of 256-Dimensional Projections")
+        plt.title("t-SNE Visualization of 32-Dimensional Projections")
         plt.xlabel("t-SNE Component 1")
         plt.ylabel("t-SNE Component 2")
         plt.show()
@@ -223,7 +223,7 @@ if __name__ == "__main__":
                 s=100,
             )
         plt.title(
-            "t-SNE Visualization of 256-Dimensional Projections with Corresponding Points"
+            "t-SNE Visualization of 32-Dimensional Projections with Corresponding Points"
         )
         plt.xlabel("t-SNE Component 1")
         plt.ylabel("t-SNE Component 2")
@@ -265,7 +265,7 @@ if __name__ == "__main__":
             im = axs_flat[idx].imshow(dist_matrix, cmap="viridis")
             axs_flat[idx].set_title(f"Pairwise Cosine Similarity: {camera}")
             fig.colorbar(im, ax=axs_flat[idx])
-        plt.suptitle("Pairwise Cosine Similarity of 256-Dimensional Projections")
+        plt.suptitle("Pairwise Cosine Similarity of 32-Dimensional Projections")
         plt.tight_layout()
         plt.show()
 

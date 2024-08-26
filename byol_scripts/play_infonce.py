@@ -217,7 +217,7 @@ if __name__ == "__main__":
             alpha=0.1,
         )
         plt.legend()
-        plt.title("t-SNE Visualization of 256-Dimensional Projections")
+        plt.title("t-SNE Visualization of 32-Dimensional Projections")
         plt.xlabel("t-SNE Component 1")
         plt.ylabel("t-SNE Component 2")
         plt.show()
@@ -314,7 +314,7 @@ if __name__ == "__main__":
 
         # Add legend and labels
         plt.legend()
-        plt.title("t-SNE Visualization of 256-Dimensional Projections")
+        plt.title("t-SNE Visualization of 32-Dimensional Projections")
         plt.xlabel("t-SNE Component 1")
         plt.ylabel("t-SNE Component 2")
         plt.show()
@@ -363,14 +363,14 @@ if __name__ == "__main__":
         for i in range(num_points):
             color = colormap(i)
             plt.scatter(
-                projections_tsne[i :: len(projections_camera_1), 0],
-                projections_tsne[i :: len(projections_camera_1), 1],
+                projections_tsne[i :: len(projections_camera_2), 0],
+                projections_tsne[i :: len(projections_camera_2), 1],
                 color=color,
                 alpha=0.5,
                 s=100,
             )
         plt.title(
-            "t-SNE Visualization of 256-Dimensional Projections with Corresponding Points"
+            "t-SNE Visualization of 32-Dimensional Projections with Corresponding Points"
         )
         plt.xlabel("t-SNE Component 1")
         plt.ylabel("t-SNE Component 2")
@@ -412,7 +412,7 @@ if __name__ == "__main__":
             im = axs_flat[idx].imshow(dist_matrix, cmap="viridis")
             axs_flat[idx].set_title(f"Pairwise Cosine Similarity: {camera}")
             fig.colorbar(im, ax=axs_flat[idx])
-        plt.suptitle("Pairwise Cosine Similarity of 256-Dimensional Projections")
+        plt.suptitle("Pairwise Cosine Similarity of 32-Dimensional Projections")
         plt.tight_layout()
         plt.show()
 
@@ -432,26 +432,26 @@ if __name__ == "__main__":
                 image = image_a
                 camera = camera_a
                 if idx == 0:
-                    projections = projections_tsne[0 : len(projections_camera_1)]
-                if idx > len(projections_camera_1):
+                    projections = projections_tsne[0 : len(projections_camera_2)]
+                if idx > len(projections_camera_2):
                     break
             elif disp_camera == 2:
                 image = image_b
                 camera = camera_b
                 if idx == 0:
                     projections = projections_tsne[
-                        len(projections_camera_1) : 2 * len(projections_camera_1)
+                        len(projections_camera_2) : 2 * len(projections_camera_2)
                     ]
-                if idx > len(projections_camera_1):
+                if idx > len(projections_camera_2):
                     break
             elif disp_camera == 3:
                 image = image_a
                 camera = camera_a
                 if idx == 0:
                     projections = projections_tsne[
-                        2 * len(projections_camera_1) : 3 * len(projections_camera_1)
+                        2 * len(projections_camera_2) : 3 * len(projections_camera_2)
                     ]
-                if idx < len(projections_camera_1):
+                if idx < len(projections_camera_2):
                     idx += 1
                     continue
             elif disp_camera == 4:
@@ -459,9 +459,9 @@ if __name__ == "__main__":
                 camera = camera_b
                 if idx == 0:
                     projections = projections_tsne[
-                        3 * len(projections_camera_1) : 4 * len(projections_camera_1)
+                        3 * len(projections_camera_2) : 4 * len(projections_camera_2)
                     ]
-                if idx < len(projections_camera_1):
+                if idx < len(projections_camera_2):
                     idx += 1
                     continue
 
@@ -479,8 +479,8 @@ if __name__ == "__main__":
                 )
             elif disp_camera == 3 or disp_camera == 4:
                 ax2.scatter(
-                    projections[0 : idx - len(projections_camera_1), 0],
-                    projections[0 : idx - len(projections_camera_1), 1],
+                    projections[0 : idx - len(projections_camera_2), 0],
+                    projections[0 : idx - len(projections_camera_2), 1],
                     alpha=0.5,
                 )
             ax2.set_xlim(-75, 75)
@@ -495,9 +495,9 @@ if __name__ == "__main__":
     elif args.plot == "live_plot_2":
         print("For this plot, set the dataset to desired camera combination!")
         offset_a = 0
-        offset_b = 1 * len(projections_camera_1)
-        offset_c = 2 * len(projections_camera_1)
-        offset_d = 3 * len(projections_camera_1)
+        offset_b = 1 * len(projections_camera_2)
+        offset_c = 2 * len(projections_camera_2)
+        offset_d = 3 * len(projections_camera_2)
         dataset = TwoImagesLabelledDataset(args.image_folder, IMAGE_SIZE)
         dataloader = torch.utils.data.DataLoader(
             dataset,

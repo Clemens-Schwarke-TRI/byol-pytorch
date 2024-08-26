@@ -152,7 +152,7 @@ if __name__ == "__main__":
         alpha=0.25,
     )
     plt.legend()
-    plt.title("t-SNE Visualization of 256-Dimensional Projections")
+    plt.title("t-SNE Visualization of 32-Dimensional Projections")
     plt.xlabel("t-SNE Component 1")
     plt.ylabel("t-SNE Component 2")
     plt.show()
