@@ -20,10 +20,10 @@ from byol_pytorch import InfoNCE, SpartanFileDataset
 # arguments
 parser = argparse.ArgumentParser(description="export_embeddings")
 parser.add_argument(
-    "--file_path",
+    "--save_path",
     type=str,
     required=True,
-    help="path to the log folder",
+    help="path to the save folder",
 )
 parser.add_argument(
     "--target_freq_ratio",
@@ -69,12 +69,44 @@ class SelfSupervisedLearner(pl.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=LR)
 
 
-# main
-if __name__ == "__main__":
-    # load model and compute projections
-    # create dataset
+file_paths = [
+    # "/home/clemensschwarke/Desktop/data/0804_1/log_5/",
+    # "/home/clemensschwarke/Desktop/data/0804_1/log_6/",
+    # "/home/clemensschwarke/Desktop/data/0804_1/log_7/",
+    # "/home/clemensschwarke/Desktop/data/0804_1/log_8/",
+    # "/home/clemensschwarke/Desktop/data/0804_2/log_1/",
+    # "/home/clemensschwarke/Desktop/data/0804_2/log_2/",
+    # "/home/clemensschwarke/Desktop/data/0804_2/log_3/",
+    # "/home/clemensschwarke/Desktop/data/0804_2/log_4/",
+    # "/home/clemensschwarke/Desktop/data/0804_2/log_5/",
+    # "/home/clemensschwarke/Desktop/data/0804_2/log_6/",
+    # "/home/clemensschwarke/Desktop/data/0804_2/log_7/",
+    # "/home/clemensschwarke/Desktop/data/0804_2/log_8/",
+    # "/home/clemensschwarke/Desktop/data/0804_3/log_1/",
+    # "/home/clemensschwarke/Desktop/data/0804_3/log_2/",
+    # "/home/clemensschwarke/Desktop/data/0804_3/log_3/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_1/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_2/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_3/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_4/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_5/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_6/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_8/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_9/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_10/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_11/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_12/",
+]
+
+file_paths_val = [
+    # "/home/clemensschwarke/Desktop/data/0804_3/log_4/",
+    # "/home/clemensschwarke/Desktop/data/0823_1/log_7/",
+]
+
+
+def export_embeddings(file_path, is_val=False):
     dataset = SpartanFileDataset(
-        args.file_path, args.target_freq_ratio, args.width, args.height, IMAGE_SIZE
+        file_path, args.target_freq_ratio, args.width, args.height, IMAGE_SIZE
     )
     dataloader = torch.utils.data.DataLoader(
         dataset,
@@ -86,7 +118,9 @@ if __name__ == "__main__":
     # create model
     net = models.resnet18()
     model = SelfSupervisedLearner.load_from_checkpoint(
-        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_160_box_run/checkpoints/epoch=99-step=49400.ckpt",
+        # Do not forget to change version for file name!
+        "/home/clemensschwarke/git/byol-pytorch/lightning_logs/version_215_like_205_sanity/checkpoints/epoch=19-step=1480.ckpt",  # Do not forget to change version for file name!
+        # Do not forget to change version for file name!
         net=net,
         image_size=IMAGE_SIZE,
         hidden_layer="avgpool",
@@ -95,6 +129,8 @@ if __name__ == "__main__":
         # map_location={"cuda:1": "cuda:0"},
     )
     model.eval()
+
+    version = "215"  # Do not forget to change version for file name!
 
     with torch.no_grad():
         # play model
@@ -134,13 +170,26 @@ if __name__ == "__main__":
     }
     df = pd.DataFrame(data)
 
-    path_parts = args.file_path.strip(os.sep).split(os.sep)
+    path_parts = file_path.strip(os.sep).split(os.sep)
     try:
         data_index = path_parts.index("data")
-        filename_parts = path_parts[data_index + 1:]
-        filename = f"latent_{'_'.join(filename_parts)}.pkl"
+        filename_parts = path_parts[data_index + 1 :]
+        filename = f"latent_{version}_{'_'.join(filename_parts)}.pkl"
     except ValueError:
-        filename = "latent.pkl"
+        filename = f"latent_{version}.pkl"
 
-    df.to_pickle(os.path.join(args.file_path, filename))
-    print(f"Saved dataframe to {os.path.join(args.file_path, filename)}")
+    path = os.path.join(args.save_path, "val" if is_val else "train")
+    os.makedirs(path, exist_ok=True)
+    path = os.path.join(path, filename)
+    df.to_pickle(path)
+    print(f"Saved dataframe to {path}")
+
+
+# main
+if __name__ == "__main__":
+    # load model and compute projections
+    # create dataset
+    for file_path in file_paths:
+        export_embeddings(file_path)
+    for file_path in file_paths_val:
+        export_embeddings(file_path, is_val=True)

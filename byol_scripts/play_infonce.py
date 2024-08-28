@@ -202,7 +202,7 @@ if __name__ == "__main__":
             projections_tsne[labels == 1, 0],
             projections_tsne[labels == 1, 1],
             label="camera_2",
-            alpha=0.1,
+            alpha=0.25,
         )
         # plt.scatter(
         #     projections_tsne[labels == 2, 0],
@@ -214,7 +214,7 @@ if __name__ == "__main__":
             projections_tsne[labels == 3, 0],
             projections_tsne[labels == 3, 1],
             label="camera_4",
-            alpha=0.1,
+            alpha=0.25,
         )
         plt.legend()
         plt.title("t-SNE Visualization of 32-Dimensional Projections")

@@ -217,8 +217,11 @@ class InfoNCE(nn.Module):
         )
 
         # regularize with L1
-        reg_loss = (
-            self.reg_lambda * torch.sum(torch.abs(online_projections), dim=-1)
-        ).mean()
+        if self.training:
+            reg_loss = (
+                self.reg_lambda * torch.sum(torch.abs(online_projections), dim=-1)
+            ).mean()
+        else:
+            reg_loss = 0.0
 
         return nce_loss + reg_loss

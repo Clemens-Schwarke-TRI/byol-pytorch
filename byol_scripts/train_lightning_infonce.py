@@ -40,7 +40,7 @@ args = parser.parse_args()
 
 # constants
 BATCH_SIZE = 128
-EPOCHS = 40
+EPOCHS = 20
 LR = 3e-4
 IMAGE_SIZE = 256
 IMAGE_EXTS = [".jpg", ".png", ".jpeg"]
@@ -74,15 +74,55 @@ class SelfSupervisedLearner(pl.LightningModule):
 
 # main
 if __name__ == "__main__":
-    ds = ImagePoseDataset(args.train_folder, IMAGE_SIZE, data_percentage=0.5)
+    ds = ImagePoseDataset(
+        args.train_folder,
+        IMAGE_SIZE,
+        data_percentage=1.0,
+    )
     train_loader = DataLoader(
         ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=multiprocessing.cpu_count()
     )
-    ds_val = ImagePoseDataset(args.val_folder, IMAGE_SIZE)
+    ds_val = ImagePoseDataset(
+        args.val_folder,
+        IMAGE_SIZE,
+        data_multiplier=10,
+        combinations=[
+            # ("camera_1", "camera_2"),
+            # ("camera_1", "camera_3"),
+            # ("camera_1", "camera_4"),
+            # ("camera_2", "camera_1"),
+            # ("camera_2", "camera_3"),
+            ("camera_2", "camera_4"),
+            # ("camera_3", "camera_1"),
+            # ("camera_3", "camera_2"),
+            # ("camera_3", "camera_4"),
+            # ("camera_4", "camera_1"),
+            ("camera_4", "camera_2"),
+            # ("camera_4", "camera_3"),
+        ],
+    )
     val_loader = DataLoader(
         ds_val, batch_size=BATCH_SIZE, num_workers=multiprocessing.cpu_count()
     )
-    ds_val2 = ImagePoseDataset(args.val_folder_2, IMAGE_SIZE)
+    ds_val2 = ImagePoseDataset(
+        args.val_folder_2,
+        IMAGE_SIZE,
+        data_multiplier=10,
+        combinations=[
+            # ("camera_1", "camera_2"),
+            # ("camera_1", "camera_3"),
+            # ("camera_1", "camera_4"),
+            # ("camera_2", "camera_1"),
+            # ("camera_2", "camera_3"),
+            ("camera_2", "camera_4"),
+            # ("camera_3", "camera_1"),
+            # ("camera_3", "camera_2"),
+            # ("camera_3", "camera_4"),
+            # ("camera_4", "camera_1"),
+            ("camera_4", "camera_2"),
+            # ("camera_4", "camera_3"),
+        ],
+    )
     val_loader2 = DataLoader(
         ds_val2, batch_size=BATCH_SIZE, num_workers=multiprocessing.cpu_count()
     )
